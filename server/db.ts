@@ -86,7 +86,7 @@ const SEED_TASKS: QuestTask[] = [
   },
 ];
 
-// Simple SHA-256 for demo admin credentials
+// Simple SHA-256 for administrator credentials configured through the environment.
 function hashPassword(pass: string): string {
   return crypto.createHash('sha256').update(pass).digest('hex');
 }
@@ -218,11 +218,32 @@ const SEED_AUDIT_LOGS: AuditLogEntry[] = [
 
 class Database {
   private data: DatabaseSchema;
+  private readonly initialization: Promise<void>;
+  private readonly pendingPersistence = new Set<Promise<void>>();
 
   constructor() {
     this.ensureDataDir();
     this.data = this.loadDatabase();
-    this.initPostgres();
+    this.initialization = this.initPostgres();
+  }
+
+  public async waitUntilReady(): Promise<void> {
+    await this.initialization;
+  }
+
+  private trackPersistence(operation: Promise<unknown>) {
+    const tracked = operation.then(
+      () => undefined,
+      (err) => {
+        console.error('Persistence operation failed:', err);
+      }
+    );
+    this.pendingPersistence.add(tracked);
+    void tracked.finally(() => this.pendingPersistence.delete(tracked));
+  }
+
+  public async flushPersistence(): Promise<void> {
+    await Promise.all([...this.pendingPersistence]);
   }
 
   private async initPostgres() {
@@ -289,16 +310,7 @@ class Database {
       tasks: SEED_TASKS,
       applicants,
       applicant_tasks,
-      admins: [
-        {
-          id: 'admin-1',
-          email: 'admin@robinos.xyz',
-          role: 'superadmin',
-          created_at: new Date().toISOString(),
-          password_hash: hashPassword('robinos2026!'),
-          session_tokens: [],
-        },
-      ],
+      admins: [],
       audit_logs: SEED_AUDIT_LOGS,
       settings: DEFAULT_SETTINGS,
       duplicate_attempts: 3,
@@ -346,7 +358,7 @@ class Database {
 
     this.save();
     if (postgresService.isAvailable()) {
-      postgresService.saveSettings(this.data.settings).catch(console.error);
+      this.trackPersistence(postgresService.saveSettings(this.data.settings));
     }
     return this.data.settings;
   }
@@ -385,7 +397,7 @@ class Database {
 
     this.save();
     if (postgresService.isAvailable()) {
-      postgresService.saveTask(newTask).catch(console.error);
+      this.trackPersistence(postgresService.saveTask(newTask));
     }
     return newTask;
   }
@@ -419,7 +431,7 @@ class Database {
 
     this.save();
     if (postgresService.isAvailable()) {
-      postgresService.saveTask(updated).catch(console.error);
+      this.trackPersistence(postgresService.saveTask(updated));
     }
     return updated;
   }
@@ -441,7 +453,7 @@ class Database {
 
     this.save();
     if (postgresService.isAvailable()) {
-      postgresService.deleteTask(id).catch(console.error);
+      this.trackPersistence(postgresService.deleteTask(id));
     }
     return true;
   }
@@ -473,7 +485,7 @@ class Database {
 
     this.save();
     if (postgresService.isAvailable()) {
-      postgresService.saveTask(duplicated).catch(console.error);
+      this.trackPersistence(postgresService.saveTask(duplicated));
     }
     return duplicated;
   }
@@ -485,7 +497,7 @@ class Database {
         task.display_order = index + 1;
         task.updated_at = new Date().toISOString();
         if (postgresService.isAvailable()) {
-          postgresService.saveTask(task).catch(console.error);
+          this.trackPersistence(postgresService.saveTask(task));
         }
       }
     });
@@ -904,7 +916,7 @@ class Database {
       this.data.audit_logs.pop();
     }
     if (postgresService.isAvailable()) {
-      postgresService.saveAuditLog(newEntry).catch(console.error);
+      this.trackPersistence(postgresService.saveAuditLog(newEntry));
     }
     return newEntry;
   }

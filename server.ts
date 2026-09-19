@@ -25,6 +25,17 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
+// Hydrate from Neon before handling requests. This prevents serverless requests
+// from reading stale seed data while the persistent database is still loading.
+app.use(async (_req: Request, _res: Response, next: NextFunction) => {
+  try {
+    await db.waitUntilReady();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Simple IP rate limiter for submissions & auth
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const checkRateLimit = (ip: string, limit: number = 20, windowMs: number = 60000): boolean => {
@@ -289,7 +300,7 @@ const checkRateLimit = (ip: string, limit: number = 20, windowMs: number = 60000
   });
 
   // Create quest
-  app.post('/api/admin/tasks', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.post('/api/admin/tasks', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { title, description, type, task_url, proof_required, required, active, display_order } = req.body;
       if (!title || !type) {
@@ -310,6 +321,7 @@ const checkRateLimit = (ip: string, limit: number = 20, windowMs: number = 60000
         req.adminUser?.email || 'admin'
       );
 
+      await db.flushPersistence();
       res.status(201).json({ success: true, task });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -317,13 +329,14 @@ const checkRateLimit = (ip: string, limit: number = 20, windowMs: number = 60000
   });
 
   // Update quest
-  app.put('/api/admin/tasks/:id', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.put('/api/admin/tasks/:id', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const taskId = req.params.id;
       const updated = db.updateTask(taskId, req.body, req.adminUser?.email || 'admin');
       if (!updated) {
         return res.status(404).json({ error: 'Quest not found' });
       }
+      await db.flushPersistence();
       res.json({ success: true, task: updated });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -331,13 +344,14 @@ const checkRateLimit = (ip: string, limit: number = 20, windowMs: number = 60000
   });
 
   // Toggle quest active status
-  app.patch('/api/admin/tasks/:id/toggle', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.patch('/api/admin/tasks/:id/toggle', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const taskId = req.params.id;
       const task = db.getAllTasks().find((t) => t.id === taskId);
       if (!task) return res.status(404).json({ error: 'Quest not found' });
 
       const updated = db.updateTask(taskId, { active: !task.active }, req.adminUser?.email || 'admin');
+      await db.flushPersistence();
       res.json({ success: true, task: updated });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -345,11 +359,12 @@ const checkRateLimit = (ip: string, limit: number = 20, windowMs: number = 60000
   });
 
   // Duplicate quest
-  app.post('/api/admin/tasks/:id/duplicate', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.post('/api/admin/tasks/:id/duplicate', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const taskId = req.params.id;
       const duplicated = db.duplicateTask(taskId, req.adminUser?.email || 'admin');
       if (!duplicated) return res.status(404).json({ error: 'Quest not found' });
+      await db.flushPersistence();
       res.status(201).json({ success: true, task: duplicated });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -357,11 +372,12 @@ const checkRateLimit = (ip: string, limit: number = 20, windowMs: number = 60000
   });
 
   // Delete quest
-  app.delete('/api/admin/tasks/:id', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.delete('/api/admin/tasks/:id', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const taskId = req.params.id;
       const ok = db.deleteTask(taskId, req.adminUser?.email || 'admin');
       if (!ok) return res.status(404).json({ error: 'Quest not found' });
+      await db.flushPersistence();
       res.json({ success: true, message: 'Quest deleted' });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -369,13 +385,14 @@ const checkRateLimit = (ip: string, limit: number = 20, windowMs: number = 60000
   });
 
   // Reorder quests
-  app.post('/api/admin/tasks/reorder', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.post('/api/admin/tasks/reorder', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { task_ids } = req.body;
       if (!Array.isArray(task_ids)) {
         return res.status(400).json({ error: 'task_ids array is required' });
       }
       const updated = db.reorderTasks(task_ids, req.adminUser?.email || 'admin');
+      await db.flushPersistence();
       res.json({ success: true, tasks: updated });
     } catch (err: any) {
       res.status(500).json({ error: err.message });

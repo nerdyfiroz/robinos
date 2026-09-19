@@ -185,28 +185,7 @@ export class PostgresService {
         }
       }
 
-      const adminsCheck = await p.query('SELECT COUNT(*) FROM robinos_admins');
-      if (parseInt(adminsCheck.rows[0].count, 10) === 0) {
-        console.log('🌱 Seeding default administrator to Neon PostgreSQL...');
-        for (const admin of initialSeed.admins) {
-          await p.query(
-            `INSERT INTO robinos_admins (id, username, email, role, password_hash, session_tokens, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
-             ON CONFLICT (id) DO NOTHING`,
-            [
-              admin.id,
-              admin.email.split('@')[0],
-              admin.email,
-              admin.role,
-              admin.password_hash,
-              admin.session_tokens,
-              admin.created_at,
-            ]
-          );
-        }
-      }
-
-      // 3. Ensure custom admin from environment variables is created or updated
+      // 2. Ensure the administrator configured through environment variables is created or updated.
       const envUser = (process.env.ADMIN_USERNAME || process.env.ADMIN_USER || process.env.ADMIN_EMAIL || '').trim();
       const envPass = (process.env.ADMIN_PASSWORD || process.env.ADMIN_PASS || '').trim();
       if (envUser && envPass) {

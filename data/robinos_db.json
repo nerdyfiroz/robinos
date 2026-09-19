@@ -390,18 +390,7 @@
       "created_at": "2026-09-19T10:52:27.422Z"
     }
   ],
-  "admins": [
-    {
-      "id": "admin-1",
-      "email": "admin@robinos.xyz",
-      "role": "superadmin",
-      "created_at": "2026-09-19T10:15:14.387Z",
-      "password_hash": "7374730c990c5b8f9c979dc6346e5d0e0fe6d082a27b461ca1167942bd72e20c",
-      "session_tokens": [
-        "token-5924cdb9d9ac703b482e5e25ba0c1d97a56f45f9e9989343"
-      ]
-    }
-  ],
+  "admins": [],
   "audit_logs": [
     {
       "admin_id": "system",

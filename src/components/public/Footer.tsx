@@ -1,19 +1,16 @@
 import React from 'react';
-import { ExternalLink } from 'lucide-react';
-
 interface FooterProps {
-  onOpenAdmin: () => void;
   onOpenStatusCheck: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenStatusCheck }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenStatusCheck }) => {
   return (
     <footer className="border-t border-[#262f3d] bg-[#0b0e14] py-8 sm:py-10 text-xs text-[#94a3b8] w-full overflow-hidden">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <img
-              src="/logo.png"
+              src="/3.png"
               alt="ROBINOS Logo"
               referrerPolicy="no-referrer"
               className="w-6 h-6 object-cover rounded-md border border-[#303a4c]"
@@ -29,13 +26,6 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenStatusCheck }
               className="text-[#94a3b8] hover:text-[#facc15] transition-colors"
             >
               LOOKUP ALLOCATION
-            </button>
-            <span className="text-[#334155]">·</span>
-            <button
-              onClick={onOpenAdmin}
-              className="text-[#94a3b8]/70 hover:text-[#facc15] transition-colors flex items-center gap-1"
-            >
-              <span>ADMIN PORTAL</span>
             </button>
           </div>
 

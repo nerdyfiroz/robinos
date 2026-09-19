@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, Wallet } from 'lucide-react';
 import type { PlatformSettings } from '../../types.js';
 
 interface HeroProps {
   onCtaClick: () => void;
+  onWalletCheck: () => void;
   isOpen: boolean;
   settings?: PlatformSettings | null;
 }
@@ -37,7 +38,7 @@ const OpenSeaIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }
   </svg>
 );
 
-export const Hero: React.FC<HeroProps> = ({ onCtaClick, isOpen, settings }) => {
+export const Hero: React.FC<HeroProps> = ({ onCtaClick, onWalletCheck, isOpen, settings }) => {
   // Simple countdown to September 24
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [showOpenseaComingSoon, setShowOpenseaComingSoon] = useState(false);
@@ -214,6 +215,18 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, isOpen, settings }) => {
             >
               <span>{isOpen ? 'GET EARLY ACCESS' : 'EARLY ACCESS CLOSED'}</span>
               <ArrowDown className="w-4 h-4 animate-bounce shrink-0" />
+            </button>
+
+            {/* Wallet Status Lookup */}
+            <button
+              type="button"
+              id="hero-check-wallet-btn"
+              onClick={onWalletCheck}
+              className="w-full sm:w-auto px-5 sm:px-6 py-3.5 sm:py-4 text-xs sm:text-sm font-arcade font-bold tracking-wider text-[#f0fdf4] bg-[#181d26] hover:bg-[#202734] border border-[#262f3d] hover:border-[#facc15]/50 rounded-xl flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(0,0,0,0.2)] transition-all hover:scale-[1.02] active:scale-[0.99]"
+              title="Check wallet status"
+            >
+              <Wallet className="w-4 h-4 text-[#facc15]" />
+              <span>WALLET CHECKER</span>
             </button>
 
             {/* X (Twitter) Link with X Icon - Icon only, no text */}

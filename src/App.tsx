@@ -131,7 +131,6 @@ export default function App() {
       <Navbar
         isOpen={isOpen}
         onOpenStatusCheck={scrollToStatusLookup}
-        onOpenAdmin={() => navigateTo('admin')}
         onScrollToQuests={scrollToQuests}
       />
 
@@ -139,6 +138,7 @@ export default function App() {
       <main className="flex-1">
         <Hero
           onCtaClick={scrollToQuests}
+          onWalletCheck={scrollToStatusLookup}
           isOpen={isOpen}
           settings={settings}
         />
@@ -151,7 +151,6 @@ export default function App() {
 
       {/* Footer */}
       <Footer
-        onOpenAdmin={() => navigateTo('admin')}
         onOpenStatusCheck={scrollToStatusLookup}
       />
 

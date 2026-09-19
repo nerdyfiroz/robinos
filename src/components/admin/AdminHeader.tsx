@@ -35,7 +35,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         {/* Left: Brand / Admin identity */}
         <div className="flex items-center gap-3">
           <img
-            src="/logo.png"
+            src="/3.png"
             alt="ROBINOS Logo"
             referrerPolicy="no-referrer"
             className="w-9 h-9 object-cover border-2 border-[#facc15] rounded-xl shadow-[0_2px_10px_rgba(250,204,21,0.2)]"

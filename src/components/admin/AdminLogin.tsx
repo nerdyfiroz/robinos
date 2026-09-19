@@ -9,8 +9,8 @@ interface AdminLoginProps {
 }
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBackToPublic }) => {
-  const [usernameOrEmail, setUsernameOrEmail] = useState('admin@robinos.xyz');
-  const [password, setPassword] = useState('robinos2026!');
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,11 +27,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBackToPubli
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFillDemo = () => {
-    setUsernameOrEmail('admin@robinos.xyz');
-    setPassword('robinos2026!');
   };
 
   return (
@@ -108,17 +103,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBackToPubli
           </button>
         </form>
 
-        {/* Demo Credentials Box */}
-        <div className="mt-6 pt-4 border-t border-[#262f3d] text-center">
-          <p className="text-[11px] text-[#94a3b8] mb-2 font-arcade">Pre-configured Administrator Account:</p>
-          <button
-            type="button"
-            onClick={handleFillDemo}
-            className="text-[11px] font-code text-[#facc15] hover:text-[#fde047] hover:underline bg-[#1e2430] px-3 py-1.5 rounded-lg border border-[#2d3748] transition-all"
-          >
-            Fill default (admin@robinos.xyz / robinos2026!)
-          </button>
-        </div>
       </div>
     </div>
   );
