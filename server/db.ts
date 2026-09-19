@@ -9,8 +9,55 @@ import type {
   DashboardStats,
   ApplicantStatus,
   TaskVerificationStatus,
-} from '../src/types.js';
-import { postgresService, hashPassword } from './postgres.js';
+} from '../src/types';
+import { postgresService, hashPassword } from './postgres';
+
+// --- Stateless admin session tokens ---------------------------------------
+// Serverless (Vercel) spins up a fresh instance per request, so RAM-stored
+// session tokens disappear between calls and the admin gets bounced back to
+// the login screen. Signed tokens stay valid across instances.
+const SESSION_SECRET =
+  process.env.SESSION_SECRET ||
+  process.env.ADMIN_PASSWORD ||
+  process.env.ADMIN_PASS ||
+  'robinos-local-dev-secret';
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+
+export function signStatelessToken(admin: AdminUser): string {
+  const payload = Buffer.from(
+    JSON.stringify({
+      id: admin.id,
+      email: admin.email,
+      role: admin.role,
+      created_at: admin.created_at,
+      exp: Date.now() + SESSION_TTL_MS,
+    })
+  ).toString('base64url');
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  return `st.${payload}.${sig}`;
+}
+
+export function verifyStatelessToken(token: string): AdminUser | null {
+  if (!token || !token.startsWith('st.')) return null;
+  const [, payload, sig] = token.split('.');
+  if (!payload || !sig) return null;
+  const expected = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  const a = Buffer.from(sig, 'hex');
+  const b = Buffer.from(expected, 'hex');
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (!data.exp || data.exp < Date.now()) return null;
+    return {
+      id: data.id,
+      email: data.email,
+      role: data.role,
+      created_at: data.created_at,
+    } as AdminUser;
+  } catch {
+    return null;
+  }
+}
 
 // Default initial settings
 export const DEFAULT_SETTINGS: PlatformSettings = {
@@ -809,13 +856,14 @@ class Database {
       (!cleanInput.includes('@') && `${cleanInput}@robinos.xyz` === envUser);
 
     if (matchesEnv && cleanPass === envPass) {
-      const token = `token-${crypto.randomBytes(24).toString('hex')}`;
       const admin: AdminUser = {
         id: `admin-${envUser.replace(/[^a-zA-Z0-9]/g, '_')}`,
         email: envUser.includes('@') ? envUser : `${envUser}@robinos.xyz`,
         role: 'superadmin',
         created_at: new Date().toISOString(),
       };
+
+      const token = signStatelessToken(admin);
 
       if (postgresService.isAvailable()) {
         await postgresService.saveAdminSession(admin.id, token);
@@ -847,7 +895,7 @@ class Database {
     if (postgresService.isAvailable()) {
       const admin = await postgresService.authenticateAdmin(cleanInput, cleanPass);
       if (admin) {
-        const token = `token-${crypto.randomBytes(24).toString('hex')}`;
+        const token = signStatelessToken(admin);
         await postgresService.saveAdminSession(admin.id, token);
         await this.addAuditLog({
           admin_id: admin.id,
@@ -896,6 +944,10 @@ class Database {
 
   public async verifySession(token: string): Promise<AdminUser | null> {
     if (!token) return null;
+
+    const stateless = verifyStatelessToken(token);
+    if (stateless) return stateless;
+
     await this.waitUntilReady();
 
     if (postgresService.isAvailable()) {

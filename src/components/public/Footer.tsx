@@ -1,9 +1,10 @@
 import React from 'react';
 interface FooterProps {
   onOpenStatusCheck: () => void;
+  onOpenAdmin?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenStatusCheck }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenStatusCheck, onOpenAdmin }) => {
   return (
     <footer className="border-t border-[#262f3d] bg-[#0b0e14] py-8 sm:py-10 text-xs text-[#94a3b8] w-full overflow-hidden">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -27,6 +28,18 @@ export const Footer: React.FC<FooterProps> = ({ onOpenStatusCheck }) => {
             >
               LOOKUP ALLOCATION
             </button>
+            <a
+              href="/admin"
+              onClick={(e) => {
+                if (onOpenAdmin) {
+                  e.preventDefault();
+                  onOpenAdmin();
+                }
+              }}
+              className="text-[#94a3b8]/70 hover:text-[#facc15] transition-colors"
+            >
+              ADMIN
+            </a>
           </div>
 
           <div className="text-[10px] text-[#94a3b8]/60 text-center sm:text-right font-arcade">

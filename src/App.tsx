@@ -156,6 +156,7 @@ export default function App() {
       {/* Footer */}
       <Footer
         onOpenStatusCheck={scrollToStatusLookup}
+        onOpenAdmin={() => navigateTo('admin')}
       />
 
       {/* Success Modal */}

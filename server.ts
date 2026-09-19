@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
-import { db } from './server/db.js';
-import type { AdminUser } from './src/types.js';
+import { db } from './server/db';
+import type { AdminUser } from './src/types';
 
 export const app = express();
 
@@ -62,9 +62,11 @@ const requireAdmin = async (req: AuthenticatedRequest, res: Response, next: Next
 // ==========================================
 
 // Health Check
-app.get('/api/health', (_req: Request, res: Response) => {
+app.get('/api/health', async (_req: Request, res: Response) => {
+  const { postgresService } = await import('./server/postgres');
   res.json({
     status: 'ok',
+    database: postgresService.isAvailable() ? 'connected' : 'in-memory-fallback',
     timestamp: new Date().toISOString(),
     service: 'ROBINOS Early Access Platform API',
   });
