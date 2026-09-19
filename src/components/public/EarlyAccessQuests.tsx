@@ -297,21 +297,10 @@ export const EarlyAccessQuests: React.FC<EarlyAccessQuestsProps> = ({ isOpen, on
   return (
     <section id="early-access-section" className="py-12 sm:py-16 max-w-4xl mx-auto px-4 sm:px-6 w-full">
       {/* Title matching screenshot style: Pixelated yellow heading */}
-      <div className="flex items-center justify-between gap-4 mb-6 sm:mb-8">
+      <div className="mb-6 sm:mb-8">
         <h2 className="font-arcade text-lg sm:text-xl md:text-2xl text-[#facc15] tracking-wider uppercase drop-shadow-[0_2px_10px_rgba(250,204,21,0.2)]">
           EARLY ACCESS QUESTS
         </h2>
-
-        <button
-          id="refresh-quests-btn"
-          onClick={() => loadQuests(true)}
-          disabled={refreshing}
-          className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] text-[#94a3b8] hover:text-[#facc15] bg-[#181d26] border border-[#262f3d] hover:border-[#facc15]/40 rounded-md transition-colors"
-          title="Sync with database"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 text-[#facc15] ${refreshing ? 'animate-spin' : ''}`} />
-          <span className="hidden sm:inline">SYNC</span>
-        </button>
       </div>
 
       {/* Master Closed Notice */}
