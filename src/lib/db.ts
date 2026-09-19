@@ -239,6 +239,7 @@ export class MongoDatabaseService {
         const rawDate = data.collection?.launch_date?.trim();
         if (!rawDate || rawDate === 'SEPTEMBER_' || rawDate === 'September_') {
           data.collection = {
+            ...DEFAULT_SETTINGS.collection,
             ...(data.collection || {}),
             launch_date: '24th Sept',
           };
