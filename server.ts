@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
-import { db } from './server/db';
-import type { AdminUser } from './src/types';
+import { db } from './server/db.js';
+import type { AdminUser } from './src/types.js';
 
 export const app = express();
 
@@ -16,6 +16,21 @@ app.use((_req, res, next) => {
 });
 app.use(express.json());
 
+// Normalize URLs so routes match whether called directly (/api/admin/login) or via serverless rewrite (/admin/login)
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  if (req.url.startsWith('/api/[...all]')) {
+    const rawAll = (req.query?.all as string) || '';
+    req.url = '/api/' + (Array.isArray(req.query.all) ? req.query.all.join('/') : rawAll);
+  } else if (!req.url.startsWith('/api') && (
+    req.url.startsWith('/public') ||
+    req.url.startsWith('/admin') ||
+    req.url.startsWith('/health')
+  )) {
+    req.url = '/api' + req.url;
+  }
+  next();
+});
+
 // Disable caching on all API routes to ensure real-time consistency
 app.use('/api', (_req: Request, res: Response, next: NextFunction) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -24,10 +39,13 @@ app.use('/api', (_req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Middleware to ensure DB is initialized
+// Middleware to ensure DB is initialized with timeout to avoid Vercel 500
 app.use(async (_req: Request, _res: Response, next: NextFunction) => {
   try {
-    await db.waitUntilReady();
+    await Promise.race([
+      db.waitUntilReady(),
+      new Promise<void>((resolve) => setTimeout(resolve, 4000)),
+    ]);
   } catch (err) {
     console.warn('DB waitUntilReady warning in middleware:', err);
   }

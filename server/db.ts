@@ -9,8 +9,8 @@ import type {
   DashboardStats,
   ApplicantStatus,
   TaskVerificationStatus,
-} from '../src/types';
-import { postgresService, hashPassword } from './postgres';
+} from '../src/types.js';
+import { postgresService, hashPassword } from './postgres.js';
 
 // --- Stateless admin session tokens ---------------------------------------
 // Serverless (Vercel) spins up a fresh instance per request, so RAM-stored

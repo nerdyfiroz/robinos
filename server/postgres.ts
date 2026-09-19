@@ -10,7 +10,7 @@ import type {
   DashboardStats,
   ApplicantStatus,
   TaskVerificationStatus,
-} from '../src/types';
+} from '../src/types.js';
 
 const { Pool } = pg;
 
