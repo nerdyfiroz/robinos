@@ -16,13 +16,20 @@ const { Pool } = pg;
 
 // Get connection string from standard Neon / Vercel Postgres environment variables
 export function getConnectionString(): string | null {
-  return (
+  const raw =
     process.env.DATABASE_URL ||
     process.env.POSTGRES_URL ||
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL_NON_POOLING ||
-    null
-  );
+    null;
+
+  if (!raw) return null;
+
+  // Node-postgres (pg) does not support channel_binding query parameter and fails with SCRAM error if present
+  return raw
+    .replace(/[?&]channel_binding=[^&]+/, '')
+    .replace(/\?&/, '?')
+    .replace(/\?$/, '');
 }
 
 let pool: pg.Pool | null = null;
@@ -35,9 +42,9 @@ function getPool(): pg.Pool | null {
     pool = new Pool({
       connectionString,
       ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false },
-      max: 10,
+      max: process.env.VERCEL ? 3 : 10,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+      connectionTimeoutMillis: 8000,
     });
 
     pool.on('error', (err) => {
@@ -183,22 +190,53 @@ export class PostgresService {
             ]
           );
         }
+      } else {
+        // Ensure task-1 has updated title and proof_required
+        await p.query(`
+          UPDATE robinos_tasks 
+          SET title = 'FOLLOW @RobinosNFT ON X',
+              task_url = 'https://x.com/RobinosNFT',
+              proof_required = true
+          WHERE id = 'task-1' AND title LIKE '%RobinhoodApp%';
+        `).catch(() => {});
       }
 
-      // 4. Ensure administrator exists in DB
+      // 4. Remove any test/seed applicants from previous versions
+      await p.query(`
+        DELETE FROM robinos_applicant_tasks 
+        WHERE applicant_id IN ('app-1', 'app-2', 'app-3', 'app-4', 'app-5', 'app-1789815147422-hr49')
+           OR applicant_id LIKE 'app-%-hr49'
+           OR proof_url LIKE '%18385710000%'
+           OR proof_url LIKE '%@test_user%';
+
+        DELETE FROM robinos_applicants 
+        WHERE id IN ('app-1', 'app-2', 'app-3', 'app-4', 'app-5', 'app-1789815147422-hr49')
+           OR x_username IN ('@crypto_knight', '@degen_vibes', '@onchain_alpha', '@pixel_samurai', '@bot_farmer', '@test_user', 'crypto_knight', 'degen_vibes', 'onchain_alpha', 'pixel_samurai', 'bot_farmer', 'test_user')
+           OR application_id IN ('RB-184729', 'RB-902144', 'RB-339102', 'RB-482015', 'RB-771923', 'RB-143825');
+      `).catch(() => {});
+
+      // 5. Ensure administrator exists in DB safely
       const envUser = (process.env.ADMIN_USERNAME || process.env.ADMIN_USER || process.env.ADMIN_EMAIL || 'admin').trim();
       const envPass = (process.env.ADMIN_PASSWORD || process.env.ADMIN_PASS || 'admin').trim();
       const email = envUser.includes('@') ? envUser : `${envUser}@robinos.xyz`;
       const username = envUser.replace('@', '');
       const passHash = hashPassword(envPass);
 
-      await p.query(
-        `INSERT INTO robinos_admins (id, username, email, role, password_hash, session_tokens, created_at)
-         VALUES ($1, $2, $3, 'superadmin', $4, ARRAY[]::TEXT[], NOW())
-         ON CONFLICT (username) DO UPDATE SET password_hash = $4, email = $3`,
-        [`admin-${username}`, username, email, passHash]
-      );
-      console.log(`🔐 Admin user "${username}" initialized in PostgreSQL.`);
+      try {
+        await p.query(
+          `INSERT INTO robinos_admins (id, username, email, role, password_hash, session_tokens, created_at)
+           VALUES ($1, $2, $3, 'superadmin', $4, ARRAY[]::TEXT[], NOW())
+           ON CONFLICT (username) DO UPDATE SET password_hash = $4, email = $3`,
+          [`admin-${username}`, username, email, passHash]
+        );
+        console.log(`🔐 Admin user "${username}" initialized in PostgreSQL.`);
+      } catch (adminErr) {
+        // If email was already in use under another username, update password on that email
+        await p.query(
+          `UPDATE robinos_admins SET password_hash = $1, username = $2 WHERE email = $3`,
+          [passHash, username, email]
+        ).catch(() => {});
+      }
 
       return true;
     } catch (err) {
@@ -512,8 +550,14 @@ export class PostgresService {
       await p.query(
         `INSERT INTO robinos_applicants (id, application_id, wallet_address, x_username, x_profile_url, status, allocation, notes, created_at, updated_at, reviewed_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-         ON CONFLICT (id) DO UPDATE SET
-           status = $6, allocation = $7, notes = $8, updated_at = NOW(), reviewed_at = $11`,
+         ON CONFLICT (wallet_address) DO UPDATE SET
+           x_username = EXCLUDED.x_username,
+           x_profile_url = EXCLUDED.x_profile_url,
+           status = EXCLUDED.status,
+           allocation = EXCLUDED.allocation,
+           notes = EXCLUDED.notes,
+           updated_at = NOW(),
+           reviewed_at = EXCLUDED.reviewed_at`,
         [
           applicant.id,
           applicant.application_id,

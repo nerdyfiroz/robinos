@@ -89,11 +89,11 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
 export const SEED_TASKS: QuestTask[] = [
   {
     id: 'task-1',
-    title: 'FOLLOW @RobinosNFT AND @RobinhoodApp',
+    title: 'FOLLOW @RobinosNFT ON X',
     description: 'Follow our official handles on X to stay updated on drops and announcements.',
     type: 'Follow',
     task_url: 'https://x.com/RobinosNFT',
-    proof_required: false,
+    proof_required: true,
     required: true,
     active: true,
     display_order: 1,

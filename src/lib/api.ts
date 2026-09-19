@@ -34,11 +34,11 @@ function getAuthHeaders(): HeadersInit {
 const DEFAULT_FALLBACK_TASKS: QuestTask[] = [
   {
     id: 'task-1',
-    title: 'FOLLOW @RobinosNFT AND @RobinhoodApp',
+    title: 'FOLLOW @RobinosNFT ON X',
     description: 'Follow our official handles on X to stay updated on drops and announcements.',
     type: 'Follow',
     task_url: 'https://x.com/RobinosNFT',
-    proof_required: false,
+    proof_required: true,
     required: true,
     active: true,
     display_order: 1,
@@ -170,7 +170,13 @@ export const api = {
         password,
       }),
     });
-    const data = await res.json();
+    const text = await res.text();
+    let data: any = {};
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`Server returned error (${res.status}): ${text.substring(0, 100)}`);
+    }
     if (!res.ok) throw new Error(data.error || 'Login failed');
     setAdminToken(data.token);
     return data;
