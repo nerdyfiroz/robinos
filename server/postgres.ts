@@ -1,4 +1,9 @@
-import pg from 'pg';
+import dns from 'dns';
+try {
+  dns.setDefaultResultOrder?.('ipv4first');
+} catch {}
+
+import { neon } from '@neondatabase/serverless';
 import crypto from 'crypto';
 import type {
   QuestTask,
@@ -12,47 +17,64 @@ import type {
   TaskVerificationStatus,
 } from '../src/types.js';
 
-const { Pool } = pg;
+const FALLBACK_NEON_URL =
+  'postgresql://neondb_owner:npg_zPHDmT1e6xAn@ep-shy-bar-awa9p3wb-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require';
 
-// Get connection string from standard Neon / Vercel Postgres environment variables
-export function getConnectionString(): string | null {
+// Get connection string from standard Neon / Vercel Postgres environment variables or fallback
+export function getConnectionString(): string {
   const raw =
     process.env.DATABASE_URL ||
     process.env.POSTGRES_URL ||
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL_NON_POOLING ||
-    null;
+    FALLBACK_NEON_URL;
 
-  if (!raw) return null;
-
-  // Node-postgres (pg) does not support channel_binding query parameter and fails with SCRAM error if present
   return raw
     .replace(/[?&]channel_binding=[^&]+/, '')
     .replace(/\?&/, '?')
     .replace(/\?$/, '');
 }
 
-let pool: pg.Pool | null = null;
+interface DbResult<T = any> {
+  rows: T[];
+  rowCount?: number;
+}
 
-function getPool(): pg.Pool | null {
+interface DbClient {
+  query<T = any>(sqlText: string, params?: any[]): Promise<DbResult<T>>;
+}
+
+let client: DbClient | null = null;
+
+function getPool(): DbClient | null {
   const connectionString = getConnectionString();
   if (!connectionString) return null;
 
-  if (!pool) {
-    pool = new Pool({
-      connectionString,
-      ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false },
-      max: process.env.VERCEL ? 3 : 10,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 8000,
-    });
-
-    pool.on('error', (err) => {
-      console.error('Neon PostgreSQL Pool Error:', err);
-    });
+  if (!client) {
+    const sql = neon(connectionString, { fullResults: true });
+    client = {
+      async query<T = any>(sqlText: string, params?: any[]): Promise<DbResult<T>> {
+        let lastErr: any;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const res: any = await sql.query(sqlText, params || []);
+            return {
+              rows: (res.rows || []) as T[],
+              rowCount: typeof res.rowCount === 'number' ? res.rowCount : (res.rows?.length || 0),
+            };
+          } catch (err: any) {
+            lastErr = err;
+            if (attempt < 3) {
+              await new Promise((r) => setTimeout(r, 200 * attempt));
+            }
+          }
+        }
+        throw lastErr;
+      },
+    };
   }
 
-  return pool;
+  return client;
 }
 
 export function hashPassword(pass: string): string {
@@ -69,21 +91,23 @@ export class PostgresService {
   }): Promise<boolean> {
     const p = getPool();
     if (!p) {
-      console.log('ℹ️ No DATABASE_URL or POSTGRES_URL found. Running with in-memory database fallback.');
+      console.log('ℹ️ No database connection found. Running with in-memory database fallback.');
       return false;
     }
 
     try {
-      console.log('🔄 Connecting to Neon PostgreSQL database...');
+      console.log('🔄 Connecting to Neon PostgreSQL database via serverless HTTP...');
 
-      // 1. Create tables if they do not exist
+      // 1. Create tables if they do not exist (run individually to avoid prepared statement limits)
       await p.query(`
         CREATE TABLE IF NOT EXISTS robinos_settings (
           id VARCHAR(50) PRIMARY KEY,
           data JSONB NOT NULL,
           updated_at TIMESTAMPTZ DEFAULT NOW()
-        );
+        )
+      `);
 
+      await p.query(`
         CREATE TABLE IF NOT EXISTS robinos_tasks (
           id VARCHAR(100) PRIMARY KEY,
           title TEXT NOT NULL,
@@ -96,8 +120,10 @@ export class PostgresService {
           display_order INT DEFAULT 1,
           created_at TIMESTAMPTZ DEFAULT NOW(),
           updated_at TIMESTAMPTZ DEFAULT NOW()
-        );
+        )
+      `);
 
+      await p.query(`
         CREATE TABLE IF NOT EXISTS robinos_applicants (
           id VARCHAR(100) PRIMARY KEY,
           application_id VARCHAR(50) UNIQUE NOT NULL,
@@ -110,8 +136,10 @@ export class PostgresService {
           created_at TIMESTAMPTZ DEFAULT NOW(),
           updated_at TIMESTAMPTZ DEFAULT NOW(),
           reviewed_at TIMESTAMPTZ
-        );
+        )
+      `);
 
+      await p.query(`
         CREATE TABLE IF NOT EXISTS robinos_applicant_tasks (
           id VARCHAR(120) PRIMARY KEY,
           applicant_id VARCHAR(100) NOT NULL,
@@ -122,8 +150,10 @@ export class PostgresService {
           status VARCHAR(50) DEFAULT 'Completed',
           verified_at TIMESTAMPTZ,
           created_at TIMESTAMPTZ DEFAULT NOW()
-        );
+        )
+      `);
 
+      await p.query(`
         CREATE TABLE IF NOT EXISTS robinos_admins (
           id VARCHAR(100) PRIMARY KEY,
           username VARCHAR(100) UNIQUE NOT NULL,
@@ -132,8 +162,10 @@ export class PostgresService {
           password_hash TEXT NOT NULL,
           session_tokens TEXT[] DEFAULT ARRAY[]::TEXT[],
           created_at TIMESTAMPTZ DEFAULT NOW()
-        );
+        )
+      `);
 
+      await p.query(`
         CREATE TABLE IF NOT EXISTS robinos_audit_logs (
           id VARCHAR(100) PRIMARY KEY,
           admin_id VARCHAR(100),
@@ -144,12 +176,14 @@ export class PostgresService {
           previous_value TEXT,
           new_value TEXT,
           created_at TIMESTAMPTZ DEFAULT NOW()
-        );
+        )
+      `);
 
+      await p.query(`
         CREATE TABLE IF NOT EXISTS robinos_counters (
           key VARCHAR(50) PRIMARY KEY,
           count INT DEFAULT 0
-        );
+        )
       `);
 
       this.isConnected = true;
@@ -201,21 +235,7 @@ export class PostgresService {
         `).catch(() => {});
       }
 
-      // 4. Remove any test/seed applicants from previous versions
-      await p.query(`
-        DELETE FROM robinos_applicant_tasks 
-        WHERE applicant_id IN ('app-1', 'app-2', 'app-3', 'app-4', 'app-5', 'app-1789815147422-hr49')
-           OR applicant_id LIKE 'app-%-hr49'
-           OR proof_url LIKE '%18385710000%'
-           OR proof_url LIKE '%@test_user%';
-
-        DELETE FROM robinos_applicants 
-        WHERE id IN ('app-1', 'app-2', 'app-3', 'app-4', 'app-5', 'app-1789815147422-hr49')
-           OR x_username IN ('@crypto_knight', '@degen_vibes', '@onchain_alpha', '@pixel_samurai', '@bot_farmer', '@test_user', 'crypto_knight', 'degen_vibes', 'onchain_alpha', 'pixel_samurai', 'bot_farmer', 'test_user')
-           OR application_id IN ('RB-184729', 'RB-902144', 'RB-339102', 'RB-482015', 'RB-771923', 'RB-143825');
-      `).catch(() => {});
-
-      // 5. Ensure administrator exists in DB safely
+      // 4. Ensure administrator exists in DB safely
       const envUser = (process.env.ADMIN_USERNAME || process.env.ADMIN_USER || process.env.ADMIN_EMAIL || 'admin').trim();
       const envPass = (process.env.ADMIN_PASSWORD || process.env.ADMIN_PASS || 'admin').trim();
       const email = envUser.includes('@') ? envUser : `${envUser}@robinos.xyz`;
@@ -726,40 +746,33 @@ export class PostgresService {
     }
 
     try {
-      const [countsRes, todayRes, counterRes, taskStatsRes] = await Promise.all([
-        p.query(`
-          SELECT
-            COUNT(*)::int as total,
-            COUNT(CASE WHEN status = 'Pending' THEN 1 END)::int as pending,
-            COUNT(CASE WHEN status = 'Approved' THEN 1 END)::int as approved,
-            COUNT(CASE WHEN status = 'Rejected' THEN 1 END)::int as rejected,
-            COUNT(CASE WHEN status = 'Under Review' THEN 1 END)::int as under_review,
-            COUNT(CASE WHEN status = 'Waitlisted' THEN 1 END)::int as waitlisted
-          FROM robinos_applicants
-        `),
-        p.query(`
-          SELECT COUNT(*)::int as count
-          FROM robinos_applicants
-          WHERE created_at >= NOW() - INTERVAL '24 hours'
-        `),
-        p.query(`
-          SELECT count FROM robinos_counters WHERE key = 'duplicates'
-        `),
-        p.query(`
-          SELECT
-            t.id as task_id,
-            t.title as title,
-            COUNT(at.id)::int as count
-          FROM robinos_tasks t
-          LEFT JOIN robinos_applicant_tasks at ON t.id = at.task_id AND at.status != 'Rejected'
-          WHERE t.active = true
-          GROUP BY t.id, t.title
-        `),
-      ]);
+      const countsRes = await p.query(`
+        SELECT
+          COUNT(*)::int as total,
+          COUNT(CASE WHEN status = 'Pending' THEN 1 END)::int as pending,
+          COUNT(CASE WHEN status = 'Approved' THEN 1 END)::int as approved,
+          COUNT(CASE WHEN status = 'Rejected' THEN 1 END)::int as rejected,
+          COUNT(CASE WHEN status = 'Under Review' THEN 1 END)::int as under_review,
+          COUNT(CASE WHEN status = 'Waitlisted' THEN 1 END)::int as waitlisted,
+          COUNT(CASE WHEN created_at >= NOW() - INTERVAL '24 hours' THEN 1 END)::int as today_count,
+          COALESCE((SELECT count FROM robinos_counters WHERE key = 'duplicates' LIMIT 1), 0)::int as duplicate_count
+        FROM robinos_applicants
+      `);
 
-      const counts = countsRes.rows[0];
-      const todayCount = todayRes.rows[0]?.count || 0;
-      const dupCount = counterRes.rows[0]?.count || 0;
+      const taskStatsRes = await p.query(`
+        SELECT
+          t.id as task_id,
+          t.title as title,
+          COUNT(at.id)::int as count
+        FROM robinos_tasks t
+        LEFT JOIN robinos_applicant_tasks at ON t.id = at.task_id AND at.status != 'Rejected'
+        WHERE t.active = true
+        GROUP BY t.id, t.title
+      `);
+
+      const counts = countsRes.rows[0] || {};
+      const todayCount = counts.today_count || 0;
+      const dupCount = counts.duplicate_count || 0;
 
       const taskStats = taskStatsRes.rows.map((r) => ({
         task_id: r.task_id,

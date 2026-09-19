@@ -1,3 +1,8 @@
+import dns from 'dns';
+try {
+  dns.setDefaultResultOrder?.('ipv4first');
+} catch {}
+
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { db } from './server/db.js';
@@ -81,7 +86,7 @@ const requireAdmin = async (req: AuthenticatedRequest, res: Response, next: Next
 
 // Health Check
 app.get('/api/health', async (_req: Request, res: Response) => {
-  const { postgresService } = await import('./server/postgres');
+  const { postgresService } = await import('./server/postgres.js');
   res.json({
     status: 'ok',
     database: postgresService.isAvailable() ? 'connected' : 'in-memory-fallback',

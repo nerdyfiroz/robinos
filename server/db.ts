@@ -406,6 +406,9 @@ class Database {
     completion?: string;
   }): Promise<Applicant[]> {
     await this.waitUntilReady();
+    if (!postgresService.isAvailable()) {
+      await this.init();
+    }
     if (postgresService.isAvailable()) {
       return await postgresService.getApplicants(filters);
     }
@@ -450,6 +453,9 @@ class Database {
 
   public async getApplicantById(idOrAppId: string): Promise<Applicant | null> {
     await this.waitUntilReady();
+    if (!postgresService.isAvailable()) {
+      await this.init();
+    }
     if (postgresService.isAvailable()) {
       return await postgresService.getApplicantById(idOrAppId);
     }
@@ -475,17 +481,26 @@ class Database {
 
   public async getApplicantByWallet(wallet: string): Promise<Applicant | null> {
     await this.waitUntilReady();
+    if (!postgresService.isAvailable()) {
+      await this.init();
+    }
     if (postgresService.isAvailable()) {
       return await postgresService.getApplicantByWallet(wallet);
     }
-    const a = this.memoryData.applicants.find(
-      (app) => app.wallet_address.toLowerCase() === wallet.toLowerCase()
+
+    const cleanWallet = wallet.trim().toLowerCase();
+    const applicant = this.memoryData.applicants.find(
+      (a) => a.wallet_address.toLowerCase() === cleanWallet
     );
-    return a ? this.getApplicantById(a.id) : null;
+    if (!applicant) return null;
+    return this.getApplicantById(applicant.id);
   }
 
   public async getApplicantByUsername(xUsername: string): Promise<Applicant | null> {
     await this.waitUntilReady();
+    if (!postgresService.isAvailable()) {
+      await this.init();
+    }
     if (postgresService.isAvailable()) {
       return await postgresService.getApplicantByUsername(xUsername);
     }
@@ -569,12 +584,26 @@ class Database {
       total_required_tasks_count: activeTasks.filter((t) => t.required).length,
     };
 
+    if (!postgresService.isAvailable()) {
+      await this.init();
+    }
+
     if (postgresService.isAvailable()) {
       await postgresService.saveApplicant(newApplicant, newTasks);
     } else {
-      this.memoryData.applicants.unshift(newApplicant);
-      this.memoryData.applicant_tasks.push(...newTasks);
+      throw new Error('Database connection is not available. Please try again.');
     }
+
+    // Keep memory mirror in sync for this instance
+    const existingIdx = this.memoryData.applicants.findIndex(
+      (a) => a.wallet_address.toLowerCase() === cleanWallet
+    );
+    if (existingIdx >= 0) {
+      this.memoryData.applicants[existingIdx] = newApplicant;
+    } else {
+      this.memoryData.applicants.unshift(newApplicant);
+    }
+    this.memoryData.applicant_tasks.push(...newTasks);
 
     await this.addAuditLog({
       admin_id: 'system',
@@ -596,9 +625,19 @@ class Database {
     adminEmail?: string
   ): Promise<Applicant | null> {
     await this.waitUntilReady();
+    if (!postgresService.isAvailable()) {
+      await this.init();
+    }
+
     if (postgresService.isAvailable()) {
       const updated = await postgresService.updateApplicantStatus(idOrAppId, status, allocation, notes);
       if (updated) {
+        const idx = this.memoryData.applicants.findIndex(
+          (a) => a.id === updated.id || a.application_id.toUpperCase() === updated.application_id.toUpperCase()
+        );
+        if (idx >= 0) {
+          this.memoryData.applicants[idx] = updated;
+        }
         await this.addAuditLog({
           admin_id: 'admin',
           admin_email: adminEmail || 'admin',
@@ -650,6 +689,10 @@ class Database {
     adminEmail?: string
   ): Promise<ApplicantTaskRecord | null> {
     await this.waitUntilReady();
+    if (!postgresService.isAvailable()) {
+      await this.init();
+    }
+
     if (postgresService.isAvailable()) {
       const rec = await postgresService.updateTaskVerification(applicantId, taskId, status);
       if (rec) {
@@ -690,6 +733,10 @@ class Database {
     adminEmail?: string
   ): Promise<number> {
     await this.waitUntilReady();
+    if (!postgresService.isAvailable()) {
+      await this.init();
+    }
+
     if (postgresService.isAvailable()) {
       const count = await postgresService.bulkUpdateApplicants(ids, action, allocation);
       await this.addAuditLog({
@@ -750,6 +797,10 @@ class Database {
   // --- STATS ---
   public async getStats(): Promise<DashboardStats> {
     await this.waitUntilReady();
+    if (!postgresService.isAvailable()) {
+      await this.init();
+    }
+
     if (postgresService.isAvailable()) {
       return await postgresService.getStats();
     }
