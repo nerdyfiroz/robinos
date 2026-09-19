@@ -25,14 +25,19 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
-// Hydrate from Neon before handling requests. This prevents serverless requests
-// from reading stale seed data while the persistent database is still loading.
+// Hydrate from Neon before handling requests. Use a timeout so cold-starting
+// Neon databases don't cause Vercel serverless functions to hang and time out.
 app.use(async (_req: Request, _res: Response, next: NextFunction) => {
   try {
-    await db.waitUntilReady();
+    await Promise.race([
+      db.waitUntilReady(),
+      new Promise<void>((resolve) => setTimeout(resolve, 5000)),
+    ]);
     next();
   } catch (err) {
-    next(err);
+    // If Postgres init fails, continue with local/seed data
+    console.warn('DB readiness check failed, proceeding with fallback data:', err);
+    next();
   }
 });
 

@@ -91,130 +91,13 @@ function hashPassword(pass: string): string {
   return crypto.createHash('sha256').update(pass).digest('hex');
 }
 
-// Starter applicants
-function generateInitialApplicants(): { applicants: Applicant[]; applicant_tasks: ApplicantTaskRecord[] } {
-  const applicants: Applicant[] = [
-    {
-      id: 'app-1',
-      application_id: 'RB-184729',
-      wallet_address: '0x71C83921B135334208aAb0a249A2d2f7f7229342',
-      x_username: '@crypto_knight',
-      x_profile_url: 'https://x.com/crypto_knight',
-      status: 'Approved',
-      allocation: '2 NFTs',
-      created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-      updated_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-      reviewed_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-    },
-    {
-      id: 'app-2',
-      application_id: 'RB-902144',
-      wallet_address: '0x94A02dEfB9213192083B10283CDe901B93220194',
-      x_username: '@degen_vibes',
-      x_profile_url: 'https://x.com/degen_vibes',
-      status: 'Under Review',
-      allocation: null,
-      created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-      updated_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-      reviewed_at: null,
-    },
-    {
-      id: 'app-3',
-      application_id: 'RB-339102',
-      wallet_address: '0x1F2B4C5D6E7F8091A2B3C4D5E6F708192A3B4C5D',
-      x_username: '@onchain_alpha',
-      x_profile_url: 'https://x.com/onchain_alpha',
-      status: 'Pending',
-      allocation: null,
-      created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-      updated_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-      reviewed_at: null,
-    },
-    {
-      id: 'app-4',
-      application_id: 'RB-482015',
-      wallet_address: '0x3B99C88D22E1A7F0182C3D4E5A6B7C8D9E0F1A2B',
-      x_username: '@pixel_samurai',
-      x_profile_url: 'https://x.com/pixel_samurai',
-      status: 'Waitlisted',
-      allocation: '1 NFT',
-      created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-      updated_at: new Date(Date.now() - 3600000 * 1).toISOString(),
-      reviewed_at: new Date(Date.now() - 3600000 * 1).toISOString(),
-    },
-    {
-      id: 'app-5',
-      application_id: 'RB-771923',
-      wallet_address: '0x000000000000000000000000000000000000dEaD',
-      x_username: '@bot_farmer',
-      x_profile_url: 'https://x.com/bot_farmer',
-      status: 'Rejected',
-      allocation: null,
-      created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
-      updated_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-      reviewed_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-    },
-  ];
+// No seed applicants — the platform starts clean. Real applicants are persisted
+// in Neon PostgreSQL and reloaded on each cold start via initPostgres().
 
-  const applicant_tasks: ApplicantTaskRecord[] = [];
-  applicants.forEach((app, idx) => {
-    SEED_TASKS.forEach((task) => {
-      let status: 'Completed' | 'Verified' | 'Rejected' | 'Needs Review' = 'Completed';
-      if (app.status === 'Approved') status = 'Verified';
-      if (app.status === 'Rejected') status = 'Rejected';
-      if (app.status === 'Under Review') status = task.proof_required ? 'Needs Review' : 'Verified';
 
-      applicant_tasks.push({
-        id: `at-${app.id}-${task.id}`,
-        applicant_id: app.id,
-        task_id: task.id,
-        task_title: task.title,
-        task_type: task.type,
-        proof_url: task.proof_required ? `https://x.com/${app.x_username.replace('@', '')}/status/18385710000${idx}` : undefined,
-        status,
-        verified_at: app.reviewed_at,
-        created_at: app.created_at,
-      });
-    });
-  });
+// No seed audit logs — start with a clean audit trail
+const SEED_AUDIT_LOGS: AuditLogEntry[] = [];
 
-  return { applicants, applicant_tasks };
-}
-
-// Initial audit logs
-const SEED_AUDIT_LOGS: AuditLogEntry[] = [
-  {
-    id: 'log-1',
-    admin_id: 'admin-1',
-    admin_email: 'admin@robinos.xyz',
-    action: 'System initialized and quests published',
-    target_type: 'system',
-    target_id: 'system',
-    created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
-  },
-  {
-    id: 'log-2',
-    admin_id: 'admin-1',
-    admin_email: 'admin@robinos.xyz',
-    action: 'Approved applicant RB-184729 with 2 NFTs allocation',
-    target_type: 'applicant',
-    target_id: 'RB-184729',
-    previous_value: 'Pending',
-    new_value: 'Approved (2 NFTs)',
-    created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
-  },
-  {
-    id: 'log-3',
-    admin_id: 'admin-1',
-    admin_email: 'admin@robinos.xyz',
-    action: 'Rejected applicant RB-771923 (Invalid dead address / bot activity)',
-    target_type: 'applicant',
-    target_id: 'RB-771923',
-    previous_value: 'Pending',
-    new_value: 'Rejected',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-];
 
 class Database {
   private data: DatabaseSchema;
@@ -248,6 +131,20 @@ class Database {
 
   private async initPostgres() {
     try {
+      // Wrap entire Postgres init in a 5s timeout to prevent Vercel function hangs
+      await Promise.race([
+        this.doInitPostgres(),
+        new Promise<void>((_, reject) =>
+          setTimeout(() => reject(new Error('Postgres init timed out after 5s')), 5000)
+        ),
+      ]);
+    } catch (err) {
+      console.warn('⚠️ Postgres initialization did not complete in time, using fallback data:', err);
+    }
+  }
+
+  private async doInitPostgres() {
+    try {
       const isConnected = await postgresService.initDatabase({
         tasks: this.data.tasks,
         settings: this.data.settings,
@@ -262,8 +159,9 @@ class Database {
         if (pgData) {
           if (pgData.settings) this.data.settings = pgData.settings;
           if (pgData.tasks && pgData.tasks.length > 0) this.data.tasks = pgData.tasks;
-          if (pgData.applicants && pgData.applicants.length > 0) this.data.applicants = pgData.applicants;
-          if (pgData.applicant_tasks && pgData.applicant_tasks.length > 0) this.data.applicant_tasks = pgData.applicant_tasks;
+          // Always use Postgres applicant data (even if empty — means no real applicants yet)
+          if (pgData.applicants) this.data.applicants = pgData.applicants;
+          if (pgData.applicant_tasks) this.data.applicant_tasks = pgData.applicant_tasks;
           if (pgData.admins && pgData.admins.length > 0) this.data.admins = pgData.admins;
           if (pgData.audit_logs && pgData.audit_logs.length > 0) this.data.audit_logs = pgData.audit_logs;
           if (pgData.duplicate_attempts !== undefined) this.data.duplicate_attempts = pgData.duplicate_attempts;
@@ -305,15 +203,14 @@ class Database {
       }
     }
 
-    const { applicants, applicant_tasks } = generateInitialApplicants();
     const initial: DatabaseSchema = {
       tasks: SEED_TASKS,
-      applicants,
-      applicant_tasks,
+      applicants: [],
+      applicant_tasks: [],
       admins: [],
       audit_logs: SEED_AUDIT_LOGS,
       settings: DEFAULT_SETTINGS,
-      duplicate_attempts: 3,
+      duplicate_attempts: 0,
     };
 
     this.save(initial);

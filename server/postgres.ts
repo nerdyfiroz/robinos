@@ -34,7 +34,7 @@ function getPool(): pg.Pool | null {
       ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false },
       max: 10,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 8000,
+      connectionTimeoutMillis: 5000,
     });
 
     pool.on('error', (err) => {
