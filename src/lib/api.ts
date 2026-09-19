@@ -150,9 +150,14 @@ export const api = {
     });
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.error || 'No application found');
+      throw new Error(data.error || data.message || 'No application found');
     }
-    return data;
+    // The API returns { found, whitelisted, application: { ... } } — unwrap it
+    const result = data.application || data;
+    if (data.whitelisted !== undefined) {
+      result.whitelisted = data.whitelisted;
+    }
+    return result;
   },
 
   // Admin Auth
@@ -432,5 +437,50 @@ export const api = {
   getExportUrl(): string {
     const token = getAdminToken();
     return `/api/admin/export${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+  },
+
+  // Admin Whitelist (CSV Import)
+  async getWhitelist(): Promise<{
+    count: number;
+    addresses: { wallet_address: string; original_address: string; imported_at: string }[];
+  }> {
+    const res = await fetch('/api/admin/whitelist', {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch whitelist');
+    const data = await res.json();
+    return { count: data.count || 0, addresses: data.addresses || [] };
+  },
+
+  async importWhitelistCSV(file: File): Promise<{ count: number; message: string }> {
+    const token = getAdminToken();
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch('/api/admin/whitelist', {
+      method: 'POST',
+      headers: {
+        'Cache-Control': 'no-cache',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      cache: 'no-store',
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to import whitelist');
+    return { count: data.count || 0, message: data.message || 'Import complete' };
+  },
+
+  async clearWhitelist(): Promise<void> {
+    const res = await fetch('/api/admin/whitelist', {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to clear whitelist');
+    }
   },
 };

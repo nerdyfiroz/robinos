@@ -11,6 +11,7 @@ import { AdminQuestsView } from './AdminQuestsView';
 import { AdminApplicationsView } from './AdminApplicationsView';
 import { AdminSettingsView } from './AdminSettingsView';
 import { AdminAuditLogsView } from './AdminAuditLogsView';
+import { AdminWhitelistView } from './AdminWhitelistView';
 
 interface AdminDashboardProps {
   onReturnToPublic: () => void;
@@ -173,6 +174,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               }}
             />
           )}
+
+          {currentTab === 'whitelist' && <AdminWhitelistView />}
 
           {currentTab === 'audit_logs' && <AdminAuditLogsView />}
         </main>

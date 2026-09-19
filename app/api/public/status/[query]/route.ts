@@ -14,6 +14,28 @@ export async function GET(
       return NextResponse.json({ error: 'Lookup query is required' }, { status: 400 });
     }
 
+    // --- Priority 1: Check admin-imported CSV whitelist ---
+    const isWhitelisted = await db.isWalletWhitelisted(query);
+    if (isWhitelisted) {
+      return NextResponse.json({
+        found: true,
+        whitelisted: true,
+        application: {
+          application_id: 'WL-MINT',
+          wallet_address: query,
+          x_username: '',
+          status: 'Approved',
+          allocation: '1 Whitelist Mint Guaranteed',
+          submitted_at: new Date().toISOString(),
+          reviewed_at: new Date().toISOString(),
+          completion_rate: 100,
+          completed_tasks_count: 0,
+          total_required_tasks_count: 0,
+        },
+      });
+    }
+
+    // --- Priority 2: Check early access applications (existing logic) ---
     const applicant =
       (await db.getApplicantById(query)) ||
       (await db.getApplicantByWallet(query)) ||
@@ -31,6 +53,7 @@ export async function GET(
 
     return NextResponse.json({
       found: true,
+      whitelisted: false,
       application: {
         application_id: applicant.application_id,
         wallet_address: applicant.wallet_address,
@@ -48,4 +71,5 @@ export async function GET(
     return NextResponse.json({ error: err?.message || 'Failed to lookup status' }, { status: 500 });
   }
 }
+
 

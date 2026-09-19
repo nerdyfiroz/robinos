@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://robinos.xyz'),
   title: 'ROBINOS NFT Early Access Platform',
   description: 'Premium ROBINOS NFT Early Access Platform with dynamic quest engine, proof verification, applicant approval, and real-time admin management.',
   openGraph: {

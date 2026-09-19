@@ -9,9 +9,10 @@ import {
   History,
   ShieldCheck,
   Home,
+  Wallet,
 } from 'lucide-react';
 
-export type AdminTab = 'dashboard' | 'quests' | 'applications' | 'settings' | 'audit_logs';
+export type AdminTab = 'dashboard' | 'quests' | 'applications' | 'whitelist' | 'settings' | 'audit_logs';
 
 interface AdminSidebarProps {
   currentTab: AdminTab;
@@ -30,6 +31,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { id: 'dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
     { id: 'quests', label: 'QUEST MANAGEMENT', icon: Sparkles },
     { id: 'applications', label: 'APPLICATIONS', icon: Users, badge: pendingCount },
+    { id: 'whitelist', label: 'WHITELIST', icon: Wallet },
     { id: 'settings', label: 'SETTINGS', icon: Settings },
     { id: 'audit_logs', label: 'AUDIT LOGS', icon: History },
   ];

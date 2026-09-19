@@ -4,21 +4,17 @@ import React, { useState } from 'react';
 import {
   Plus,
   Edit,
-  Copy,
   Trash2,
+  Copy,
   ArrowUp,
   ArrowDown,
-  ToggleLeft,
-  ToggleRight,
   ExternalLink,
-  Sparkles,
   Check,
   X,
   AlertCircle,
   RefreshCw,
-  HelpCircle,
 } from 'lucide-react';
-import type { QuestTask, TaskType } from '../../types';
+import { QuestTask, TaskType } from '../../types';
 import { api } from '../../lib/api';
 
 interface AdminQuestsViewProps {

@@ -2,11 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  ExternalLink,
   AlertTriangle,
   Send,
   RefreshCw,
-  CheckCircle2,
 } from 'lucide-react';
 import type { QuestTask, SubmitApplicationPayload } from '../../types';
 import { api } from '../../lib/api';
@@ -48,7 +46,6 @@ const WalletCardIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5
 export const EarlyAccessQuests: React.FC<EarlyAccessQuestsProps> = ({ isOpen, onSuccess }) => {
   const [tasks, setTasks] = useState<QuestTask[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form states
@@ -60,9 +57,8 @@ export const EarlyAccessQuests: React.FC<EarlyAccessQuestsProps> = ({ isOpen, on
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Fetch dynamic quests from database
-  const loadQuests = async (showRefreshIndicator = false) => {
+  const loadQuests = async () => {
     try {
-      if (showRefreshIndicator) setRefreshing(true);
       setError(null);
       const data = await api.getPublicTasks();
       setTasks(data);
@@ -80,7 +76,6 @@ export const EarlyAccessQuests: React.FC<EarlyAccessQuestsProps> = ({ isOpen, on
       setError(err.message || 'Failed to load quests from server');
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 

@@ -14,7 +14,6 @@ import { Footer } from '@/src/components/public/Footer';
 export default function HomePage() {
   const [isOpen, setIsOpen] = useState<boolean>(true);
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
-  const [refreshKey, setRefreshKey] = useState<number>(0);
 
   // Modals state
   const [statusLookupOpen, setStatusLookupOpen] = useState(false);
@@ -101,7 +100,6 @@ export default function HomePage() {
           settings={settings}
         />
         <EarlyAccessQuests
-          key={refreshKey}
           isOpen={isOpen}
           onSuccess={(data) => setSuccessModalData(data)}
         />

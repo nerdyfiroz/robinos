@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { CheckCircle, Copy, Check, X, ShieldAlert, Sparkles, ArrowRight } from 'lucide-react';
+import { CheckCircle, Copy, Check, X, ArrowRight } from 'lucide-react';
 
 interface ApplicationSuccessModalProps {
   data: {

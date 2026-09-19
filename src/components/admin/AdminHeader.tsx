@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Shield, Power, ExternalLink, LogOut, RefreshCw, Check, AlertTriangle, Home } from 'lucide-react';
+import { LogOut, RefreshCw, Home } from 'lucide-react';
 import type { AdminUser, PlatformSettings } from '../../types';
 import { api } from '../../lib/api';
 

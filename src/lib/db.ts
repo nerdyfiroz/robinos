@@ -980,6 +980,104 @@ export class MongoDatabaseService {
     } catch {}
   }
 
+  // --- WHITELIST (CSV IMPORT) ---
+  public async importWhitelist(addresses: string[], adminEmail?: string): Promise<number> {
+    await this.waitUntilReady();
+    const db = await getDatabase();
+    const whitelistCol = db.collection('whitelist');
+
+    // Clear existing whitelist
+    await whitelistCol.deleteMany({});
+
+    // Deduplicate and normalize addresses
+    const seen = new Set<string>();
+    const docs: { wallet_address: string; original_address: string; imported_at: string }[] = [];
+    const now = new Date().toISOString();
+
+    for (const addr of addresses) {
+      const clean = addr.trim().toLowerCase();
+      if (clean && !seen.has(clean)) {
+        seen.add(clean);
+        docs.push({
+          wallet_address: clean,
+          original_address: addr.trim(),
+          imported_at: now,
+        });
+      }
+    }
+
+    if (docs.length > 0) {
+      await whitelistCol.insertMany(docs as any);
+      // Ensure index for fast lookups
+      await whitelistCol.createIndex({ wallet_address: 1 }, { unique: true }).catch(() => {});
+    }
+
+    await this.addAuditLog({
+      admin_id: 'admin',
+      admin_email: adminEmail || 'admin',
+      action: `Imported whitelist CSV with ${docs.length} wallet addresses`,
+      target_type: 'settings',
+      target_id: 'whitelist',
+      new_value: JSON.stringify({ count: docs.length }),
+    });
+
+    return docs.length;
+  }
+
+  public async getWhitelistAddresses(): Promise<{ wallet_address: string; original_address: string; imported_at: string }[]> {
+    await this.waitUntilReady();
+    try {
+      const db = await getDatabase();
+      const docs = await db.collection('whitelist').find({}).sort({ wallet_address: 1 }).toArray();
+      return docs.map((d: any) => ({
+        wallet_address: d.wallet_address,
+        original_address: d.original_address || d.wallet_address,
+        imported_at: d.imported_at || '',
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  public async isWalletWhitelisted(wallet: string): Promise<boolean> {
+    await this.waitUntilReady();
+    const clean = wallet.trim().toLowerCase();
+    if (!clean) return false;
+    try {
+      const db = await getDatabase();
+      const doc = await db.collection('whitelist').findOne({ wallet_address: clean });
+      return !!doc;
+    } catch {
+      return false;
+    }
+  }
+
+  public async clearWhitelist(adminEmail?: string): Promise<void> {
+    await this.waitUntilReady();
+    const db = await getDatabase();
+    const countBefore = await db.collection('whitelist').countDocuments();
+    await db.collection('whitelist').deleteMany({});
+
+    await this.addAuditLog({
+      admin_id: 'admin',
+      admin_email: adminEmail || 'admin',
+      action: `Cleared whitelist (removed ${countBefore} addresses)`,
+      target_type: 'settings',
+      target_id: 'whitelist',
+      previous_value: JSON.stringify({ count: countBefore }),
+    });
+  }
+
+  public async getWhitelistCount(): Promise<number> {
+    await this.waitUntilReady();
+    try {
+      const db = await getDatabase();
+      return await db.collection('whitelist').countDocuments();
+    } catch {
+      return 0;
+    }
+  }
+
   // --- MAPPING HELPERS ---
   private mapTaskDoc(d: any): QuestTask {
     return {
