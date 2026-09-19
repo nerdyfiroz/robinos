@@ -67,7 +67,7 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
     supply: 5555,
     mint_price: '0.0004 ETH (~$1)',
     chain: 'Robinhood',
-    launch_date: 'September 24',
+    launch_date: '24th Sept',
     x_url: 'https://x.com/RobinosNFT',
     opensea_status: 'Coming Soon',
     opensea_url: 'https://opensea.io/collection/robinos-nft',
@@ -234,7 +234,17 @@ export class MongoDatabaseService {
     try {
       const db = await getDatabase();
       const doc = await db.collection('settings').findOne({ _id: 'default' as any });
-      if (doc && doc.data) return doc.data as PlatformSettings;
+      if (doc && doc.data) {
+        const data = doc.data as PlatformSettings;
+        const rawDate = data.collection?.launch_date?.trim();
+        if (!rawDate || rawDate === 'SEPTEMBER_' || rawDate === 'September_') {
+          data.collection = {
+            ...(data.collection || {}),
+            launch_date: '24th Sept',
+          };
+        }
+        return data;
+      }
     } catch (err) {
       console.warn('Error reading settings from MongoDB:', err);
     }

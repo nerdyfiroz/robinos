@@ -48,10 +48,12 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onWalletCheck, isOpen, s
 
   useEffect(() => {
     const calculateTime = () => {
-      const targetYear = new Date().getFullYear();
-      let target = new Date(`September 24, ${targetYear} 18:00:00 UTC`).getTime();
+      const now = new Date();
+      const currentYear = now.getUTCFullYear();
+      // Target: September 24 at 14:00 UTC
+      let target = new Date(Date.UTC(currentYear, 8, 24, 14, 0, 0)).getTime();
       if (Date.now() > target) {
-        target = new Date(`September 24, ${targetYear + 1} 18:00:00 UTC`).getTime();
+        target = new Date(Date.UTC(currentYear + 1, 8, 24, 14, 0, 0)).getTime();
       }
       const diff = Math.max(0, target - Date.now());
 
@@ -73,11 +75,17 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onWalletCheck, isOpen, s
     supply: 5555,
     mint_price: '0.0004 ETH (~$1)',
     chain: 'Robinhood',
-    launch_date: 'September 24',
+    launch_date: '24th Sept',
     x_url: 'https://x.com/RobinosNFT',
     opensea_status: 'Coming Soon',
     opensea_url: 'https://opensea.io/collection/robinos-nft',
   };
+
+  const rawLaunch = collection.launch_date?.trim();
+  const displayLaunchDate =
+    rawLaunch && rawLaunch !== 'SEPTEMBER_' && rawLaunch !== 'September_'
+      ? rawLaunch
+      : '24th Sept';
 
   const isOpenseaLive =
     collection.opensea_status === 'Live' && Boolean(collection.opensea_url);
@@ -174,7 +182,7 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onWalletCheck, isOpen, s
                   LAUNCH
                 </div>
                 <div className="font-pixel text-xs sm:text-sm text-[#facc15] font-bold uppercase truncate">
-                  {collection.launch_date || 'SEPTEMBER 24'}
+                  {displayLaunchDate}
                 </div>
               </div>
             </div>

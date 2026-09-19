@@ -84,7 +84,7 @@ export const api = {
         supply: 5555,
         mint_price: '0.0004 ETH (~$1)',
         chain: 'Robinhood',
-        launch_date: 'September 24',
+        launch_date: '24th Sept',
         x_url: 'https://x.com/RobinosNFT',
         opensea_status: 'Coming Soon',
         opensea_url: 'https://opensea.io/collection/robinos-nft',
