@@ -21,26 +21,6 @@ export const Footer: React.FC<FooterProps> = ({ onOpenStatusCheck, onOpenAdmin }
             <span className="text-[10px] text-[#94a3b8]/60 font-pixel">· BRING ONCHAIN CULTURE BACK</span>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px] font-arcade">
-            <button
-              onClick={onOpenStatusCheck}
-              className="text-[#94a3b8] hover:text-[#facc15] transition-colors"
-            >
-              LOOKUP ALLOCATION
-            </button>
-            <a
-              href="/admin"
-              onClick={(e) => {
-                if (onOpenAdmin) {
-                  e.preventDefault();
-                  onOpenAdmin();
-                }
-              }}
-              className="text-[#94a3b8]/70 hover:text-[#facc15] transition-colors"
-            >
-              ADMIN
-            </a>
-          </div>
 
           <div className="text-[10px] text-[#94a3b8]/60 text-center sm:text-right font-arcade">
             © {new Date().getFullYear()} ROBINOS NFT. ALL ONCHAIN RIGHTS RESERVED.
