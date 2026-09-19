@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { getDatabase } from './mongodb';
+import { getDatabase, getMongoUri } from './mongodb';
 import type {
   QuestTask,
   Applicant,
@@ -127,6 +127,8 @@ export class MongoDatabaseService {
 
   private async init(): Promise<void> {
     try {
+      const uri = getMongoUri();
+      if (!uri) return;
       const db = await getDatabase();
 
       // Collections

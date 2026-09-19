@@ -1,38 +1,36 @@
 import { MongoClient, Db } from 'mongodb';
 
-const uri =
-  process.env.MONGODB_URI ||
-  process.env.DATABASE_URL ||
-  process.env.MONGODB_URL ||
-  '';
-
-let clientPromise: Promise<MongoClient>;
-
 declare global {
   // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-if (process.env.NODE_ENV === 'development') {
+export function getMongoUri(): string {
+  return (
+    process.env.MONGODB_URI ||
+    process.env.DATABASE_URL ||
+    process.env.MONGODB_URL ||
+    ''
+  ).trim();
+}
+
+export function getClientPromise(): Promise<MongoClient> {
+  const uri = getMongoUri();
+  if (!uri || (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://'))) {
+    throw new Error(
+      'MongoDB connection string is missing or invalid. Please set MONGODB_URI (e.g. mongodb+srv://...) in your environment variables.'
+    );
+  }
+
   if (!global._mongoClientPromise) {
     const client = new MongoClient(uri);
     global._mongoClientPromise = client.connect();
   }
-  clientPromise = global._mongoClientPromise;
-} else {
-  const client = new MongoClient(uri);
-  clientPromise = client.connect();
+
+  return global._mongoClientPromise;
 }
 
 export async function getDatabase(): Promise<Db> {
-  if (!uri) {
-    throw new Error(
-      'MongoDB connection string is missing. Please set MONGODB_URI, DATABASE_URL, or MONGODB_URL in your environment variables.'
-    );
-  }
-  const client = await clientPromise;
+  const client = await getClientPromise();
   return client.db();
 }
-
-export default clientPromise;
-
