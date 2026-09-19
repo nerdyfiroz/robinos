@@ -596,7 +596,9 @@ app.get('/api/admin/audit-logs', requireAdmin, async (_req: AuthenticatedRequest
 async function startServer() {
   const PORT = 3000;
   if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
+    // Dynamic specifier keeps Vite (and its native deps) out of the serverless bundle
+    const vitePackage = 'vite';
+    const { createServer: createViteServer } = await import(/* @vite-ignore */ vitePackage);
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
