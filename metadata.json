@@ -1,0 +1,6 @@
+{
+  "name": "ROBINOS NFT Early Access Platform",
+  "description": "Premium ROBINOS NFT Early Access Platform with dynamic quest engine, proof verification, applicant approval, and real-time admin management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

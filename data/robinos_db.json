@@ -1,0 +1,526 @@
+{
+  "tasks": [
+    {
+      "id": "task-1",
+      "title": "FOLLOW @RobinosNFT AND @RobinhoodApp",
+      "description": "Follow our official handles on X to stay updated on drops and announcements.",
+      "type": "Follow",
+      "task_url": "https://x.com/RobinosNFT",
+      "proof_required": false,
+      "required": true,
+      "active": true,
+      "display_order": 1,
+      "created_at": "2026-09-14T10:15:14.386Z",
+      "updated_at": "2026-09-14T10:15:14.387Z"
+    },
+    {
+      "id": "task-2",
+      "title": "LIKE, REPOST & COMMENT ON PINNED POST",
+      "description": "Engage with our official pinned launch announcement on X.",
+      "type": "Comment",
+      "task_url": "https://x.com/RobinosNFT",
+      "proof_required": true,
+      "required": true,
+      "active": true,
+      "display_order": 2,
+      "created_at": "2026-09-15T10:15:14.387Z",
+      "updated_at": "2026-09-15T10:15:14.387Z"
+    }
+  ],
+  "applicants": [
+    {
+      "id": "app-1",
+      "application_id": "RB-184729",
+      "wallet_address": "0x71C83921B135334208aAb0a249A2d2f7f7229342",
+      "x_username": "@crypto_knight",
+      "x_profile_url": "https://x.com/crypto_knight",
+      "status": "Approved",
+      "allocation": "2 NFTs",
+      "created_at": "2026-09-17T10:15:14.387Z",
+      "updated_at": "2026-09-18T10:15:14.387Z",
+      "reviewed_at": "2026-09-18T10:15:14.387Z"
+    },
+    {
+      "id": "app-2",
+      "application_id": "RB-902144",
+      "wallet_address": "0x94A02dEfB9213192083B10283CDe901B93220194",
+      "x_username": "@degen_vibes",
+      "x_profile_url": "https://x.com/degen_vibes",
+      "status": "Under Review",
+      "allocation": null,
+      "created_at": "2026-09-18T10:15:14.387Z",
+      "updated_at": "2026-09-18T10:15:14.387Z",
+      "reviewed_at": null
+    },
+    {
+      "id": "app-3",
+      "application_id": "RB-339102",
+      "wallet_address": "0x1F2B4C5D6E7F8091A2B3C4D5E6F708192A3B4C5D",
+      "x_username": "@onchain_alpha",
+      "x_profile_url": "https://x.com/onchain_alpha",
+      "status": "Pending",
+      "allocation": null,
+      "created_at": "2026-09-19T06:15:14.387Z",
+      "updated_at": "2026-09-19T06:15:14.387Z",
+      "reviewed_at": null
+    },
+    {
+      "id": "app-4",
+      "application_id": "RB-482015",
+      "wallet_address": "0x3B99C88D22E1A7F0182C3D4E5A6B7C8D9E0F1A2B",
+      "x_username": "@pixel_samurai",
+      "x_profile_url": "https://x.com/pixel_samurai",
+      "status": "Waitlisted",
+      "allocation": "1 NFT",
+      "created_at": "2026-09-19T08:15:14.387Z",
+      "updated_at": "2026-09-19T09:15:14.387Z",
+      "reviewed_at": "2026-09-19T09:15:14.387Z"
+    },
+    {
+      "id": "app-5",
+      "application_id": "RB-771923",
+      "wallet_address": "0x000000000000000000000000000000000000dEaD",
+      "x_username": "@bot_farmer",
+      "x_profile_url": "https://x.com/bot_farmer",
+      "status": "Rejected",
+      "allocation": null,
+      "created_at": "2026-09-16T10:15:14.387Z",
+      "updated_at": "2026-09-17T10:15:14.387Z",
+      "reviewed_at": "2026-09-17T10:15:14.387Z"
+    },
+    {
+      "id": "app-1789815147422-hr49",
+      "application_id": "RB-143825",
+      "wallet_address": "0x1234567890abcdef1234567890abcdef12345678",
+      "x_username": "@test_user",
+      "x_profile_url": "https://x.com/test_user",
+      "status": "Pending",
+      "allocation": null,
+      "created_at": "2026-09-19T10:52:27.422Z",
+      "updated_at": "2026-09-19T10:52:27.422Z",
+      "reviewed_at": null
+    }
+  ],
+  "applicant_tasks": [
+    {
+      "id": "at-app-1-task-1",
+      "applicant_id": "app-1",
+      "task_id": "task-1",
+      "task_title": "Follow ROBINOS on X",
+      "task_type": "Follow",
+      "status": "Verified",
+      "verified_at": "2026-09-18T10:15:14.387Z",
+      "created_at": "2026-09-17T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-1-task-2",
+      "applicant_id": "app-1",
+      "task_id": "task-2",
+      "task_title": "Like & Repost Launch Announcement",
+      "task_type": "Repost",
+      "proof_url": "https://x.com/crypto_knight/status/183857100000",
+      "status": "Verified",
+      "verified_at": "2026-09-18T10:15:14.387Z",
+      "created_at": "2026-09-17T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-1-task-3",
+      "applicant_id": "app-1",
+      "task_id": "task-3",
+      "task_title": "Comment on Official Post",
+      "task_type": "Comment",
+      "proof_url": "https://x.com/crypto_knight/status/183857100000",
+      "status": "Verified",
+      "verified_at": "2026-09-18T10:15:14.387Z",
+      "created_at": "2026-09-17T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-1-task-4",
+      "applicant_id": "app-1",
+      "task_id": "task-4",
+      "task_title": "Quote Post with #ROBINOS & Tag 3 Friends",
+      "task_type": "Quote Post",
+      "proof_url": "https://x.com/crypto_knight/status/183857100000",
+      "status": "Verified",
+      "verified_at": "2026-09-18T10:15:14.387Z",
+      "created_at": "2026-09-17T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-1-task-5",
+      "applicant_id": "app-1",
+      "task_id": "task-5",
+      "task_title": "Join Robinhood Community Lounge",
+      "task_type": "Join Telegram",
+      "status": "Verified",
+      "verified_at": "2026-09-18T10:15:14.387Z",
+      "created_at": "2026-09-17T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-2-task-1",
+      "applicant_id": "app-2",
+      "task_id": "task-1",
+      "task_title": "Follow ROBINOS on X",
+      "task_type": "Follow",
+      "status": "Verified",
+      "verified_at": null,
+      "created_at": "2026-09-18T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-2-task-2",
+      "applicant_id": "app-2",
+      "task_id": "task-2",
+      "task_title": "Like & Repost Launch Announcement",
+      "task_type": "Repost",
+      "proof_url": "https://x.com/degen_vibes/status/183857100001",
+      "status": "Needs Review",
+      "verified_at": null,
+      "created_at": "2026-09-18T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-2-task-3",
+      "applicant_id": "app-2",
+      "task_id": "task-3",
+      "task_title": "Comment on Official Post",
+      "task_type": "Comment",
+      "proof_url": "https://x.com/degen_vibes/status/183857100001",
+      "status": "Needs Review",
+      "verified_at": null,
+      "created_at": "2026-09-18T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-2-task-4",
+      "applicant_id": "app-2",
+      "task_id": "task-4",
+      "task_title": "Quote Post with #ROBINOS & Tag 3 Friends",
+      "task_type": "Quote Post",
+      "proof_url": "https://x.com/degen_vibes/status/183857100001",
+      "status": "Needs Review",
+      "verified_at": null,
+      "created_at": "2026-09-18T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-2-task-5",
+      "applicant_id": "app-2",
+      "task_id": "task-5",
+      "task_title": "Join Robinhood Community Lounge",
+      "task_type": "Join Telegram",
+      "status": "Verified",
+      "verified_at": null,
+      "created_at": "2026-09-18T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-3-task-1",
+      "applicant_id": "app-3",
+      "task_id": "task-1",
+      "task_title": "Follow ROBINOS on X",
+      "task_type": "Follow",
+      "status": "Completed",
+      "verified_at": null,
+      "created_at": "2026-09-19T06:15:14.387Z"
+    },
+    {
+      "id": "at-app-3-task-2",
+      "applicant_id": "app-3",
+      "task_id": "task-2",
+      "task_title": "Like & Repost Launch Announcement",
+      "task_type": "Repost",
+      "proof_url": "https://x.com/onchain_alpha/status/183857100002",
+      "status": "Completed",
+      "verified_at": null,
+      "created_at": "2026-09-19T06:15:14.387Z"
+    },
+    {
+      "id": "at-app-3-task-3",
+      "applicant_id": "app-3",
+      "task_id": "task-3",
+      "task_title": "Comment on Official Post",
+      "task_type": "Comment",
+      "proof_url": "https://x.com/onchain_alpha/status/183857100002",
+      "status": "Completed",
+      "verified_at": null,
+      "created_at": "2026-09-19T06:15:14.387Z"
+    },
+    {
+      "id": "at-app-3-task-4",
+      "applicant_id": "app-3",
+      "task_id": "task-4",
+      "task_title": "Quote Post with #ROBINOS & Tag 3 Friends",
+      "task_type": "Quote Post",
+      "proof_url": "https://x.com/onchain_alpha/status/183857100002",
+      "status": "Completed",
+      "verified_at": null,
+      "created_at": "2026-09-19T06:15:14.387Z"
+    },
+    {
+      "id": "at-app-3-task-5",
+      "applicant_id": "app-3",
+      "task_id": "task-5",
+      "task_title": "Join Robinhood Community Lounge",
+      "task_type": "Join Telegram",
+      "status": "Completed",
+      "verified_at": null,
+      "created_at": "2026-09-19T06:15:14.387Z"
+    },
+    {
+      "id": "at-app-4-task-1",
+      "applicant_id": "app-4",
+      "task_id": "task-1",
+      "task_title": "Follow ROBINOS on X",
+      "task_type": "Follow",
+      "status": "Completed",
+      "verified_at": "2026-09-19T09:15:14.387Z",
+      "created_at": "2026-09-19T08:15:14.387Z"
+    },
+    {
+      "id": "at-app-4-task-2",
+      "applicant_id": "app-4",
+      "task_id": "task-2",
+      "task_title": "Like & Repost Launch Announcement",
+      "task_type": "Repost",
+      "proof_url": "https://x.com/pixel_samurai/status/183857100003",
+      "status": "Completed",
+      "verified_at": "2026-09-19T09:15:14.387Z",
+      "created_at": "2026-09-19T08:15:14.387Z"
+    },
+    {
+      "id": "at-app-4-task-3",
+      "applicant_id": "app-4",
+      "task_id": "task-3",
+      "task_title": "Comment on Official Post",
+      "task_type": "Comment",
+      "proof_url": "https://x.com/pixel_samurai/status/183857100003",
+      "status": "Completed",
+      "verified_at": "2026-09-19T09:15:14.387Z",
+      "created_at": "2026-09-19T08:15:14.387Z"
+    },
+    {
+      "id": "at-app-4-task-4",
+      "applicant_id": "app-4",
+      "task_id": "task-4",
+      "task_title": "Quote Post with #ROBINOS & Tag 3 Friends",
+      "task_type": "Quote Post",
+      "proof_url": "https://x.com/pixel_samurai/status/183857100003",
+      "status": "Completed",
+      "verified_at": "2026-09-19T09:15:14.387Z",
+      "created_at": "2026-09-19T08:15:14.387Z"
+    },
+    {
+      "id": "at-app-4-task-5",
+      "applicant_id": "app-4",
+      "task_id": "task-5",
+      "task_title": "Join Robinhood Community Lounge",
+      "task_type": "Join Telegram",
+      "status": "Completed",
+      "verified_at": "2026-09-19T09:15:14.387Z",
+      "created_at": "2026-09-19T08:15:14.387Z"
+    },
+    {
+      "id": "at-app-5-task-1",
+      "applicant_id": "app-5",
+      "task_id": "task-1",
+      "task_title": "Follow ROBINOS on X",
+      "task_type": "Follow",
+      "status": "Rejected",
+      "verified_at": "2026-09-17T10:15:14.387Z",
+      "created_at": "2026-09-16T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-5-task-2",
+      "applicant_id": "app-5",
+      "task_id": "task-2",
+      "task_title": "Like & Repost Launch Announcement",
+      "task_type": "Repost",
+      "proof_url": "https://x.com/bot_farmer/status/183857100004",
+      "status": "Rejected",
+      "verified_at": "2026-09-17T10:15:14.387Z",
+      "created_at": "2026-09-16T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-5-task-3",
+      "applicant_id": "app-5",
+      "task_id": "task-3",
+      "task_title": "Comment on Official Post",
+      "task_type": "Comment",
+      "proof_url": "https://x.com/bot_farmer/status/183857100004",
+      "status": "Rejected",
+      "verified_at": "2026-09-17T10:15:14.387Z",
+      "created_at": "2026-09-16T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-5-task-4",
+      "applicant_id": "app-5",
+      "task_id": "task-4",
+      "task_title": "Quote Post with #ROBINOS & Tag 3 Friends",
+      "task_type": "Quote Post",
+      "proof_url": "https://x.com/bot_farmer/status/183857100004",
+      "status": "Rejected",
+      "verified_at": "2026-09-17T10:15:14.387Z",
+      "created_at": "2026-09-16T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-5-task-5",
+      "applicant_id": "app-5",
+      "task_id": "task-5",
+      "task_title": "Join Robinhood Community Lounge",
+      "task_type": "Join Telegram",
+      "status": "Rejected",
+      "verified_at": "2026-09-17T10:15:14.387Z",
+      "created_at": "2026-09-16T10:15:14.387Z"
+    },
+    {
+      "id": "at-app-1789815147422-hr49-task-1",
+      "applicant_id": "app-1789815147422-hr49",
+      "task_id": "task-1",
+      "task_title": "FOLLOW @RobinosNFT AND @RobinhoodApp",
+      "task_type": "Follow",
+      "proof_url": "@test_user",
+      "status": "Completed",
+      "verified_at": null,
+      "created_at": "2026-09-19T10:52:27.422Z"
+    },
+    {
+      "id": "at-app-1789815147422-hr49-task-2",
+      "applicant_id": "app-1789815147422-hr49",
+      "task_id": "task-2",
+      "task_title": "LIKE, REPOST & COMMENT ON PINNED POST",
+      "task_type": "Comment",
+      "proof_url": "https://x.com/test_user/status/123456",
+      "status": "Completed",
+      "verified_at": null,
+      "created_at": "2026-09-19T10:52:27.422Z"
+    }
+  ],
+  "admins": [
+    {
+      "id": "admin-1",
+      "email": "admin@robinos.xyz",
+      "role": "superadmin",
+      "created_at": "2026-09-19T10:15:14.387Z",
+      "password_hash": "7374730c990c5b8f9c979dc6346e5d0e0fe6d082a27b461ca1167942bd72e20c",
+      "session_tokens": [
+        "token-5924cdb9d9ac703b482e5e25ba0c1d97a56f45f9e9989343"
+      ]
+    }
+  ],
+  "audit_logs": [
+    {
+      "admin_id": "system",
+      "admin_email": "public_portal",
+      "action": "New application submitted: RB-143825 (@test_user)",
+      "target_type": "applicant",
+      "target_id": "RB-143825",
+      "new_value": "Wallet: 0x123456...",
+      "id": "log-1789815147422-9hmf",
+      "created_at": "2026-09-19T10:52:27.422Z"
+    },
+    {
+      "admin_id": "admin-1",
+      "admin_email": "admin@robinos.xyz",
+      "action": "Updated platform settings",
+      "target_type": "settings",
+      "target_id": "settings",
+      "previous_value": "{\"collection\":{\"name\":\"ROBINOS\",\"supply\":5555,\"mint_price\":\"0.0004 ETH (~$1)\",\"chain\":\"Robinhood\",\"l",
+      "new_value": "{\"collection\":{\"name\":\"ROBINOS\",\"supply\":5555,\"mint_price\":\"0.0004 ETH (~$1)\",\"chain\":\"Robinhood\",\"l",
+      "id": "log-1789814676903-n51l",
+      "created_at": "2026-09-19T10:44:36.903Z"
+    },
+    {
+      "admin_id": "admin-1",
+      "admin_email": "admin@robinos.xyz",
+      "action": "Updated platform settings",
+      "target_type": "settings",
+      "target_id": "settings",
+      "previous_value": "{\"collection\":{\"name\":\"ROBINOS\",\"supply\":5555,\"mint_price\":\"0.0004 ETH (~$1)\",\"chain\":\"Robinhood\",\"l",
+      "new_value": "{\"collection\":{\"name\":\"ROBINOS\",\"supply\":5555,\"mint_price\":\"0.0004 ETH (~$1)\",\"chain\":\"Robinhood\",\"l",
+      "id": "log-1789814650488-09uw",
+      "created_at": "2026-09-19T10:44:10.488Z"
+    },
+    {
+      "admin_id": "admin-1",
+      "admin_email": "admin@robinos.xyz",
+      "action": "Updated platform settings",
+      "target_type": "settings",
+      "target_id": "settings",
+      "previous_value": "{\"collection\":{\"name\":\"ROBINOS\",\"supply\":5555,\"mint_price\":\"0.0004 ETH (~$1)\",\"chain\":\"Robinhood\",\"l",
+      "new_value": "{\"collection\":{\"name\":\"ROBINOS\",\"supply\":5555,\"mint_price\":\"0.0004 ETH (~$1)\",\"chain\":\"Robinhood\",\"l",
+      "id": "log-1789814610279-g6xr",
+      "created_at": "2026-09-19T10:43:30.279Z"
+    },
+    {
+      "admin_id": "admin-1",
+      "admin_email": "admin@robinos.xyz",
+      "action": "Updated platform settings",
+      "target_type": "settings",
+      "target_id": "settings",
+      "previous_value": "{\"collection\":{\"name\":\"ROBINOS\",\"supply\":5555,\"mint_price\":\"0.0004 ETH (~$1)\",\"chain\":\"Robinhood\",\"l",
+      "new_value": "{\"collection\":{\"name\":\"ROBINOS\",\"supply\":5555,\"mint_price\":\"0.0004 ETH (~$1)\",\"chain\":\"Robinhood\",\"l",
+      "id": "log-1789814608582-v13i",
+      "created_at": "2026-09-19T10:43:28.582Z"
+    },
+    {
+      "admin_id": "admin-1",
+      "admin_email": "admin@robinos.xyz",
+      "action": "Admin logged in successfully",
+      "target_type": "auth",
+      "target_id": "admin-1",
+      "id": "log-1789814604077-srf4",
+      "created_at": "2026-09-19T10:43:24.077Z"
+    },
+    {
+      "id": "log-1",
+      "admin_id": "admin-1",
+      "admin_email": "admin@robinos.xyz",
+      "action": "System initialized and quests published",
+      "target_type": "system",
+      "target_id": "system",
+      "created_at": "2026-09-14T10:15:14.387Z"
+    },
+    {
+      "id": "log-2",
+      "admin_id": "admin-1",
+      "admin_email": "admin@robinos.xyz",
+      "action": "Approved applicant RB-184729 with 2 NFTs allocation",
+      "target_type": "applicant",
+      "target_id": "RB-184729",
+      "previous_value": "Pending",
+      "new_value": "Approved (2 NFTs)",
+      "created_at": "2026-09-18T10:15:14.387Z"
+    },
+    {
+      "id": "log-3",
+      "admin_id": "admin-1",
+      "admin_email": "admin@robinos.xyz",
+      "action": "Rejected applicant RB-771923 (Invalid dead address / bot activity)",
+      "target_type": "applicant",
+      "target_id": "RB-771923",
+      "previous_value": "Pending",
+      "new_value": "Rejected",
+      "created_at": "2026-09-17T10:15:14.387Z"
+    }
+  ],
+  "settings": {
+    "collection": {
+      "name": "ROBINOS",
+      "supply": 5555,
+      "mint_price": "0.0004 ETH (~$1)",
+      "chain": "Robinhood",
+      "launch_date": "September 24",
+      "x_url": "https://x.com/RobinosNFT",
+      "opensea_status": "Coming Soon",
+      "opensea_url": "https://opensea.io/collection/robinos-nft"
+    },
+    "early_access": {
+      "is_open": true,
+      "max_applications": 5555,
+      "default_allocation": "1 NFT",
+      "submission_cooldown_sec": 30,
+      "captcha_enabled": false
+    },
+    "quests": {
+      "default_proof_required": true,
+      "required_task_behavior": "Strict (All required tasks must be completed before submission)",
+      "min_tasks_required": 3
+    }
+  },
+  "duplicate_attempts": 3
+}
