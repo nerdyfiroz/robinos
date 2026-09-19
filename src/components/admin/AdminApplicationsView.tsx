@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import {
   Search,
@@ -16,9 +18,9 @@ import {
   RefreshCw,
   Eye,
 } from 'lucide-react';
-import type { Applicant, ApplicantStatus } from '../../types.js';
-import { api } from '../../lib/api.js';
-import { ApplicantDetailModal } from './ApplicantDetailModal.js';
+import type { Applicant, ApplicantStatus } from '../../types';
+import { api } from '../../lib/api';
+import { ApplicantDetailModal } from './ApplicantDetailModal';
 
 interface AdminApplicationsViewProps {
   initialStatusFilter?: string;

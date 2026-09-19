@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { History, Search, RefreshCw, Shield, ArrowRight } from 'lucide-react';
-import type { AuditLogEntry } from '../../types.js';
-import { api } from '../../lib/api.js';
+import type { AuditLogEntry } from '../../types';
+import { api } from '../../lib/api';
 
 export const AdminAuditLogsView: React.FC = () => {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);

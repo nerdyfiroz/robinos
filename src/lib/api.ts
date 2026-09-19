@@ -6,7 +6,7 @@ import type {
   AuditLogEntry,
   AdminUser,
   SubmitApplicationPayload,
-} from '../types.js';
+} from '../types';
 
 const ADMIN_TOKEN_KEY = 'robinos_admin_token';
 

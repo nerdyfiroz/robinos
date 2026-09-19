@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Lock, Mail, Key, ShieldCheck, AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
-import { api } from '../../lib/api.js';
-import type { AdminUser } from '../../types.js';
+import { api } from '../../lib/api';
+import type { AdminUser } from '../../types';
 
 interface AdminLoginProps {
   onSuccess: (admin: AdminUser) => void;

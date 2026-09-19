@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import {
   X,
@@ -13,8 +15,8 @@ import {
   RefreshCw,
   Edit,
 } from 'lucide-react';
-import type { Applicant, ApplicantStatus, TaskVerificationStatus } from '../../types.js';
-import { api } from '../../lib/api.js';
+import type { Applicant, ApplicantStatus, TaskVerificationStatus } from '../../types';
+import { api } from '../../lib/api';
 
 interface ApplicantDetailModalProps {
   applicant: Applicant;

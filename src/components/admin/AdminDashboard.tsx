@@ -1,14 +1,16 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import type { AdminUser, DashboardStats, QuestTask, PlatformSettings } from '../../types.js';
-import { api } from '../../lib/api.js';
-import { AdminLogin } from './AdminLogin.js';
-import { AdminHeader } from './AdminHeader.js';
-import { AdminSidebar, type AdminTab } from './AdminSidebar.js';
-import { AdminStatsView } from './AdminStatsView.js';
-import { AdminQuestsView } from './AdminQuestsView.js';
-import { AdminApplicationsView } from './AdminApplicationsView.js';
-import { AdminSettingsView } from './AdminSettingsView.js';
-import { AdminAuditLogsView } from './AdminAuditLogsView.js';
+import type { AdminUser, DashboardStats, QuestTask, PlatformSettings } from '../../types';
+import { api } from '../../lib/api';
+import { AdminLogin } from './AdminLogin';
+import { AdminHeader } from './AdminHeader';
+import { AdminSidebar, type AdminTab } from './AdminSidebar';
+import { AdminStatsView } from './AdminStatsView';
+import { AdminQuestsView } from './AdminQuestsView';
+import { AdminApplicationsView } from './AdminApplicationsView';
+import { AdminSettingsView } from './AdminSettingsView';
+import { AdminAuditLogsView } from './AdminAuditLogsView';
 
 interface AdminDashboardProps {
   onReturnToPublic: () => void;

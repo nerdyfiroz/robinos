@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import {
   Plus,
@@ -16,8 +18,8 @@ import {
   RefreshCw,
   HelpCircle,
 } from 'lucide-react';
-import type { QuestTask, TaskType } from '../../types.js';
-import { api } from '../../lib/api.js';
+import type { QuestTask, TaskType } from '../../types';
+import { api } from '../../lib/api';
 
 interface AdminQuestsViewProps {
   tasks: QuestTask[];

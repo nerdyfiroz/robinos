@@ -1,6 +1,8 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Search, X, CheckCircle2, Clock, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
-import { api } from '../../lib/api.js';
+import { api } from '../../lib/api';
 
 interface StatusLookupModalProps {
   initialQuery?: string;

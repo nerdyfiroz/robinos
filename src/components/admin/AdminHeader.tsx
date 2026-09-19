@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Shield, Power, ExternalLink, LogOut, RefreshCw, Check, AlertTriangle, Home } from 'lucide-react';
-import type { AdminUser, PlatformSettings } from '../../types.js';
-import { api } from '../../lib/api.js';
+import type { AdminUser, PlatformSettings } from '../../types';
+import { api } from '../../lib/api';
 
 interface AdminHeaderProps {
   admin: AdminUser;

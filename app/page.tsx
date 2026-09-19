@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { api } from './lib/api.js';
-import type { PlatformSettings } from './types.js';
-import { Navbar } from './components/public/Navbar.js';
-import { Hero } from './components/public/Hero.js';
-import { EarlyAccessQuests } from './components/public/EarlyAccessQuests.js';
-import { StatusLookupSection } from './components/public/StatusLookupSection.js';
-import { ApplicationSuccessModal } from './components/public/ApplicationSuccessModal.js';
-import { StatusLookupModal } from './components/public/StatusLookupModal.js';
-import { Footer } from './components/public/Footer.js';
-import { AdminDashboard } from './components/admin/AdminDashboard.js';
+'use client';
 
-export default function App() {
-  const [view, setView] = useState<'public' | 'admin'>('public');
+import React, { useState, useEffect } from 'react';
+import { api } from '@/src/lib/api';
+import type { PlatformSettings } from '@/src/types';
+import { Navbar } from '@/src/components/public/Navbar';
+import { Hero } from '@/src/components/public/Hero';
+import { EarlyAccessQuests } from '@/src/components/public/EarlyAccessQuests';
+import { StatusLookupSection } from '@/src/components/public/StatusLookupSection';
+import { ApplicationSuccessModal } from '@/src/components/public/ApplicationSuccessModal';
+import { StatusLookupModal } from '@/src/components/public/StatusLookupModal';
+import { Footer } from '@/src/components/public/Footer';
+
+export default function HomePage() {
   const [isOpen, setIsOpen] = useState<boolean>(true);
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [refreshKey, setRefreshKey] = useState<number>(0);
@@ -24,38 +24,6 @@ export default function App() {
     wallet_address: string;
     x_username: string;
   } | null>(null);
-
-  // Sync route with window pathname (domain/admin) and hash (#admin)
-  useEffect(() => {
-    const handleLocationChange = () => {
-      const path = window.location.pathname.toLowerCase().replace(/\/+$/, '');
-      const hash = window.location.hash.toLowerCase();
-      if (path === '/admin' || path.startsWith('/admin/') || hash === '#admin') {
-        setView('admin');
-      } else {
-        setView('public');
-      }
-    };
-
-    handleLocationChange();
-    window.addEventListener('popstate', handleLocationChange);
-    window.addEventListener('hashchange', handleLocationChange);
-    return () => {
-      window.removeEventListener('popstate', handleLocationChange);
-      window.removeEventListener('hashchange', handleLocationChange);
-    };
-  }, []);
-
-  const navigateTo = (newView: 'public' | 'admin') => {
-    setView(newView);
-    if (newView === 'admin') {
-      window.history.pushState({}, '', '/admin');
-    } else {
-      window.history.pushState({}, '', '/');
-      setRefreshKey((k) => k + 1);
-      fetchSettings();
-    }
-  };
 
   // Fetch initial platform settings
   const fetchSettings = async () => {
@@ -103,7 +71,6 @@ export default function App() {
     const input = document.getElementById('allocation-lookup-input') as HTMLInputElement | null;
     if (el && input) {
       input.value = id;
-      // trigger event
       input.dispatchEvent(new Event('input', { bubbles: true }));
       el.scrollIntoView({ behavior: 'smooth' });
       setTimeout(() => {
@@ -116,18 +83,6 @@ export default function App() {
     setSuccessModalData(null);
   };
 
-  // If viewing admin dashboard
-  if (view === 'admin') {
-    return (
-      <AdminDashboard
-        isOpen={isOpen}
-        onReturnToPublic={() => navigateTo('public')}
-        onRefreshGlobalConfig={fetchSettings}
-      />
-    );
-  }
-
-  // Public Early Access Platform
   return (
     <div className="min-h-screen bg-[#0b0e14] text-[#f0fdf4] flex flex-col selection:bg-[#facc15] selection:text-[#121820] overflow-x-hidden w-full max-w-full">
       {/* Top Navigation */}
@@ -150,34 +105,29 @@ export default function App() {
           isOpen={isOpen}
           onSuccess={(data) => setSuccessModalData(data)}
         />
-        <StatusLookupSection onScrollToQuests={scrollToQuests} />
+        <StatusLookupSection />
       </main>
 
       {/* Footer */}
-      <Footer
-        onOpenStatusCheck={scrollToStatusLookup}
-        onOpenAdmin={() => navigateTo('admin')}
-      />
+      <Footer onOpenStatusCheck={scrollToStatusLookup} />
 
-      {/* Success Modal */}
+      {/* Application Success Celebration Modal */}
       {successModalData && (
         <ApplicationSuccessModal
           data={successModalData}
           onClose={() => setSuccessModalData(null)}
-          onOpenStatusCheck={handleOpenStatusCheckWithId}
+          onOpenStatusCheck={(id) => handleOpenStatusCheckWithId(id)}
         />
       )}
 
-      {/* Status Check Modal */}
+      {/* Direct Status Check Floating Modal */}
       {statusLookupOpen && (
         <StatusLookupModal
+          onClose={() => setStatusLookupOpen(false)}
           initialQuery={statusLookupQuery}
-          onClose={() => {
-            setStatusLookupOpen(false);
-            setStatusLookupQuery('');
-          }}
         />
       )}
     </div>
   );
 }
+

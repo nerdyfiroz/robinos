@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Settings, Save, Check, RefreshCw, Shield, AlertCircle, Layers } from 'lucide-react';
-import type { PlatformSettings } from '../../types.js';
-import { api } from '../../lib/api.js';
+import type { PlatformSettings } from '../../types';
+import { api } from '../../lib/api';
 
 interface AdminSettingsViewProps {
   onSettingsSaved?: () => void;

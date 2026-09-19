@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import {
   ExternalLink,
@@ -6,8 +8,8 @@ import {
   RefreshCw,
   CheckCircle2,
 } from 'lucide-react';
-import type { QuestTask, SubmitApplicationPayload } from '../../types.js';
-import { api } from '../../lib/api.js';
+import type { QuestTask, SubmitApplicationPayload } from '../../types';
+import { api } from '../../lib/api';
 
 interface EarlyAccessQuestsProps {
   isOpen: boolean;

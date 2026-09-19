@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import {
   Search,
@@ -11,7 +13,7 @@ import {
   ShieldCheck,
   UserCheck,
 } from 'lucide-react';
-import { api } from '../../lib/api.js';
+import { api } from '../../lib/api';
 
 interface StatusLookupSectionProps {
   onScrollToQuests?: () => void;

@@ -1,6 +1,8 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowDown, Wallet } from 'lucide-react';
-import type { PlatformSettings } from '../../types.js';
+import type { PlatformSettings } from '../../types';
 
 interface HeroProps {
   onCtaClick: () => void;

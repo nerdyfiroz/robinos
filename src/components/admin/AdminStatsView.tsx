@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   Users,
@@ -11,7 +13,7 @@ import {
   BarChart3,
   TrendingUp,
 } from 'lucide-react';
-import type { DashboardStats } from '../../types.js';
+import type { DashboardStats } from '../../types';
 
 interface AdminStatsViewProps {
   stats: DashboardStats | null;
