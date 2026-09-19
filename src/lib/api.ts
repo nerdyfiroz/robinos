@@ -26,6 +26,7 @@ function getAuthHeaders(): HeadersInit {
   const token = getAdminToken();
   return {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
@@ -66,7 +67,10 @@ export const api = {
     early_access: { is_open: boolean; max_applications: number; default_allocation: string };
   }> {
     try {
-      const res = await fetch('/api/public/config');
+      const res = await fetch('/api/public/config', {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
       if (res.ok) {
         return await res.json();
       }
@@ -95,30 +99,19 @@ export const api = {
 
   async getPublicTasks(): Promise<QuestTask[]> {
     try {
-      const res = await fetch('/api/public/tasks');
+      const res = await fetch('/api/public/tasks', {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data.tasks) && data.tasks.length > 0) {
-          try {
-            localStorage.setItem('robinos_cached_tasks', JSON.stringify(data.tasks));
-          } catch {}
+        if (Array.isArray(data.tasks)) {
           return data.tasks;
         }
       }
     } catch (err) {
       console.warn('Network issue fetching tasks from server:', err);
     }
-
-    // Try cached tasks from previous fetch
-    try {
-      const cached = localStorage.getItem('robinos_cached_tasks');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
-        }
-      }
-    } catch {}
 
     return DEFAULT_FALLBACK_TASKS;
   },
@@ -136,7 +129,11 @@ export const api = {
   }> {
     const res = await fetch('/api/public/submit', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
+      cache: 'no-store',
       body: JSON.stringify(payload),
     });
     const data = await res.json();
@@ -147,7 +144,10 @@ export const api = {
   },
 
   async lookupStatus(query: string): Promise<any> {
-    const res = await fetch(`/api/public/status/${encodeURIComponent(query)}`);
+    const res = await fetch(`/api/public/status/${encodeURIComponent(query)}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' },
+    });
     const data = await res.json();
     if (!res.ok) {
       throw new Error(data.error || 'No application found');
@@ -156,11 +156,19 @@ export const api = {
   },
 
   // Admin Auth
-  async adminLogin(email: string, password: string): Promise<{ token: string; admin: AdminUser }> {
+  async adminLogin(usernameOrEmail: string, password: string): Promise<{ token: string; admin: AdminUser }> {
     const res = await fetch('/api/admin/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
+      cache: 'no-store',
+      body: JSON.stringify({
+        username: usernameOrEmail,
+        email: usernameOrEmail,
+        password,
+      }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
@@ -169,7 +177,10 @@ export const api = {
   },
 
   async verifyAdminMe(): Promise<AdminUser> {
-    const res = await fetch('/api/admin/me', { headers: getAuthHeaders() });
+    const res = await fetch('/api/admin/me', {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
     if (!res.ok) {
       clearAdminToken();
       throw new Error('Unauthorized');
@@ -180,7 +191,11 @@ export const api = {
 
   async adminLogout(): Promise<void> {
     try {
-      await fetch('/api/admin/logout', { method: 'POST', headers: getAuthHeaders() });
+      await fetch('/api/admin/logout', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        cache: 'no-store',
+      });
     } finally {
       clearAdminToken();
     }
@@ -188,7 +203,10 @@ export const api = {
 
   // Admin Stats
   async getAdminStats(): Promise<DashboardStats> {
-    const res = await fetch('/api/admin/stats', { headers: getAuthHeaders() });
+    const res = await fetch('/api/admin/stats', {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
     if (!res.ok) throw new Error('Failed to fetch statistics');
     const data = await res.json();
     return data.stats;
@@ -196,7 +214,10 @@ export const api = {
 
   // Admin Quests
   async getAdminTasks(): Promise<QuestTask[]> {
-    const res = await fetch('/api/admin/tasks', { headers: getAuthHeaders() });
+    const res = await fetch('/api/admin/tasks', {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
     if (!res.ok) throw new Error('Failed to fetch quests');
     const data = await res.json();
     return data.tasks || [];
@@ -206,6 +227,7 @@ export const api = {
     const res = await fetch('/api/admin/tasks', {
       method: 'POST',
       headers: getAuthHeaders(),
+      cache: 'no-store',
       body: JSON.stringify(task),
     });
     const data = await res.json();
@@ -217,6 +239,7 @@ export const api = {
     const res = await fetch(`/api/admin/tasks/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
+      cache: 'no-store',
       body: JSON.stringify(updates),
     });
     const data = await res.json();
@@ -228,6 +251,7 @@ export const api = {
     const res = await fetch(`/api/admin/tasks/${id}/toggle`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
+      cache: 'no-store',
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to toggle quest');
@@ -238,6 +262,7 @@ export const api = {
     const res = await fetch(`/api/admin/tasks/${id}/duplicate`, {
       method: 'POST',
       headers: getAuthHeaders(),
+      cache: 'no-store',
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to duplicate quest');
@@ -248,6 +273,7 @@ export const api = {
     const res = await fetch(`/api/admin/tasks/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
+      cache: 'no-store',
     });
     if (!res.ok) throw new Error('Failed to delete quest');
   },
@@ -256,6 +282,7 @@ export const api = {
     const res = await fetch('/api/admin/tasks/reorder', {
       method: 'POST',
       headers: getAuthHeaders(),
+      cache: 'no-store',
       body: JSON.stringify({ task_ids: taskIds }),
     });
     const data = await res.json();
@@ -278,6 +305,7 @@ export const api = {
 
     const res = await fetch(`/api/admin/applicants?${params.toString()}`, {
       headers: getAuthHeaders(),
+      cache: 'no-store',
     });
     if (!res.ok) throw new Error('Failed to fetch applicants');
     const data = await res.json();
@@ -285,7 +313,10 @@ export const api = {
   },
 
   async getApplicantDetail(id: string): Promise<Applicant> {
-    const res = await fetch(`/api/admin/applicants/${id}`, { headers: getAuthHeaders() });
+    const res = await fetch(`/api/admin/applicants/${id}`, {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
     if (!res.ok) throw new Error('Failed to fetch applicant details');
     const data = await res.json();
     return data.applicant;
@@ -300,10 +331,11 @@ export const api = {
     const res = await fetch(`/api/admin/applicants/${id}/status`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
+      cache: 'no-store',
       body: JSON.stringify({ status, allocation, notes }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to update status');
+    if (!res.ok) throw new Error(data.error || 'Failed to update applicant status');
     return data.applicant;
   },
 
@@ -315,14 +347,15 @@ export const api = {
     const res = await fetch(`/api/admin/applicants/${applicantId}/tasks/${taskId}`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
+      cache: 'no-store',
       body: JSON.stringify({ status }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to update task status');
+    if (!res.ok) throw new Error(data.error || 'Failed to update task verification');
     return data.task_record;
   },
 
-  async bulkApplicantAction(
+  async bulkUpdateApplicants(
     ids: string[],
     action: 'approve' | 'reject' | 'waitlist' | 'mark_reviewed',
     allocation?: string
@@ -330,6 +363,7 @@ export const api = {
     const res = await fetch('/api/admin/applicants/bulk', {
       method: 'POST',
       headers: getAuthHeaders(),
+      cache: 'no-store',
       body: JSON.stringify({ ids, action, allocation }),
     });
     const data = await res.json();
@@ -337,66 +371,39 @@ export const api = {
     return data.affected_count;
   },
 
-  async exportApplicantsCSV(): Promise<Blob> {
-    const res = await fetch('/api/admin/export', { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error('Failed to export CSV');
-    return res.blob();
+  async bulkApplicantAction(
+    ids: string[],
+    action: 'approve' | 'reject' | 'waitlist' | 'mark_reviewed',
+    allocation?: string
+  ): Promise<number> {
+    return this.bulkUpdateApplicants(ids, action, allocation);
   },
 
-  // Admin Settings & Audit Logs
+  async exportApplicantsCSV(): Promise<Blob> {
+    const res = await fetch('/api/admin/export', {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to export CSV');
+    return await res.blob();
+  },
+
+  // Admin Settings
   async getSettings(): Promise<PlatformSettings> {
-    const DEFAULT_FALLBACK_SETTINGS: PlatformSettings = {
-      collection: {
-        name: 'ROBINOS',
-        supply: 5555,
-        mint_price: '0.0004 ETH',
-        chain: 'Robinhood Chain',
-        launch_date: 'September 24, 2026',
-        x_url: 'https://x.com/robinos_nft',
-        opensea_status: 'Robinhood Chain Launch',
-        opensea_url: 'https://opensea.io/collection/robinos',
-      },
-      early_access: {
-        is_open: true,
-        max_applications: 5555,
-        default_allocation: '1 NFT',
-        submission_cooldown_sec: 60,
-        captcha_enabled: false,
-      },
-      quests: {
-        default_proof_required: true,
-        required_task_behavior: 'all_required',
-        min_tasks_required: 4,
-      },
-    };
-
-    try {
-      const pubRes = await fetch('/api/public/settings');
-      if (pubRes.ok) {
-        const pubData = await pubRes.json();
-        if (pubData && pubData.settings) return pubData.settings;
-      }
-    } catch {
-      // ignore and try admin endpoint
-    }
-
-    try {
-      const res = await fetch('/api/admin/settings', { headers: getAuthHeaders() });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.settings) return data.settings;
-      }
-    } catch {
-      // ignore and return fallback
-    }
-
-    return DEFAULT_FALLBACK_SETTINGS;
+    const res = await fetch('/api/admin/settings', {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch platform settings');
+    const data = await res.json();
+    return data.settings;
   },
 
   async updateSettings(settings: Partial<PlatformSettings>): Promise<PlatformSettings> {
     const res = await fetch('/api/admin/settings', {
       method: 'PUT',
       headers: getAuthHeaders(),
+      cache: 'no-store',
       body: JSON.stringify(settings),
     });
     const data = await res.json();
@@ -404,10 +411,20 @@ export const api = {
     return data.settings;
   },
 
+  // Audit Logs
   async getAuditLogs(): Promise<AuditLogEntry[]> {
-    const res = await fetch('/api/admin/audit-logs', { headers: getAuthHeaders() });
-    if (!res.ok) throw new Error('Failed to load audit logs');
+    const res = await fetch('/api/admin/audit-logs', {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch audit logs');
     const data = await res.json();
     return data.logs || [];
+  },
+
+  // CSV Export URL
+  getExportUrl(): string {
+    const token = getAdminToken();
+    return `/api/admin/export${token ? `?token=${encodeURIComponent(token)}` : ''}`;
   },
 };

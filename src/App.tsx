@@ -14,6 +14,7 @@ export default function App() {
   const [view, setView] = useState<'public' | 'admin'>('public');
   const [isOpen, setIsOpen] = useState<boolean>(true);
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
 
   // Modals state
   const [statusLookupOpen, setStatusLookupOpen] = useState(false);
@@ -51,6 +52,8 @@ export default function App() {
       window.history.pushState({}, '', '/admin');
     } else {
       window.history.pushState({}, '', '/');
+      setRefreshKey((k) => k + 1);
+      fetchSettings();
     }
   };
 
@@ -143,6 +146,7 @@ export default function App() {
           settings={settings}
         />
         <EarlyAccessQuests
+          key={refreshKey}
           isOpen={isOpen}
           onSuccess={(data) => setSuccessModalData(data)}
         />

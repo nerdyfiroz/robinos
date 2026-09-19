@@ -246,9 +246,19 @@ export const EarlyAccessQuests: React.FC<EarlyAccessQuestsProps> = ({ isOpen, on
         setSubmitError(`Please provide your response or link for "${reqTask.title}".`);
         return;
       }
-      if (reqTask.proof_required && !val.startsWith('http')) {
-        setSubmitError(`"${reqTask.title}" requires a valid link starting with http:// or https://`);
-        return;
+      if (reqTask.proof_required) {
+        const isUrlRequired =
+          reqTask.type === 'Comment' ||
+          reqTask.type === 'Like' ||
+          reqTask.title.toLowerCase().includes('link') ||
+          reqTask.title.toLowerCase().includes('post') ||
+          reqTask.description.toLowerCase().includes('link') ||
+          reqTask.description.toLowerCase().includes('http');
+
+        if (isUrlRequired && !val.startsWith('http://') && !val.startsWith('https://')) {
+          setSubmitError(`"${reqTask.title}" requires a valid link starting with http:// or https://`);
+          return;
+        }
       }
     }
 
@@ -261,7 +271,7 @@ export const EarlyAccessQuests: React.FC<EarlyAccessQuestsProps> = ({ isOpen, on
         const val = (taskInputs[t.id] || '').trim();
         return {
           task_id: t.id,
-          proof_url: val.startsWith('http') ? val : undefined,
+          proof_url: val.length > 0 ? val : undefined,
           completed: val.length > 0,
         };
       }),
