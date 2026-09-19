@@ -6,7 +6,7 @@ interface FooterProps {
   onOpenStatusCheck: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = () => {
+export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenStatusCheck }) => {
   return (
     <footer className="border-t border-[#262f3d] bg-[#0b0e14] py-8 sm:py-10 text-xs text-[#94a3b8] w-full overflow-hidden">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -21,6 +21,22 @@ export const Footer: React.FC<FooterProps> = () => {
             />
             <span className="font-arcade text-base text-[#facc15] tracking-wider">ROBINOS</span>
             <span className="text-[10px] text-[#94a3b8]/60 font-pixel">· BRING ONCHAIN CULTURE BACK</span>
+          </div>
+
+          <div className="flex items-center gap-4 text-[11px] font-arcade">
+            <button
+              onClick={onOpenStatusCheck}
+              className="text-[#94a3b8] hover:text-[#facc15] transition-colors"
+            >
+              LOOKUP ALLOCATION
+            </button>
+            <span className="text-[#334155]">·</span>
+            <button
+              onClick={onOpenAdmin}
+              className="text-[#94a3b8]/70 hover:text-[#facc15] transition-colors flex items-center gap-1"
+            >
+              <span>ADMIN PORTAL</span>
+            </button>
           </div>
 
           <div className="text-[10px] text-[#94a3b8]/60 text-center sm:text-right font-arcade">

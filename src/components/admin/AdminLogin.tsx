@@ -9,7 +9,7 @@ interface AdminLoginProps {
 }
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBackToPublic }) => {
-  const [email, setEmail] = useState('admin@robinos.xyz');
+  const [usernameOrEmail, setUsernameOrEmail] = useState('admin@robinos.xyz');
   const [password, setPassword] = useState('robinos2026!');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBackToPubli
     setLoading(true);
 
     try {
-      const res = await api.adminLogin(email.trim(), password);
+      const res = await api.adminLogin(usernameOrEmail.trim(), password);
       onSuccess(res.admin);
     } catch (err: any) {
       setError(err.message || 'Invalid admin credentials');
@@ -30,7 +30,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBackToPubli
   };
 
   const handleFillDemo = () => {
-    setEmail('admin@robinos.xyz');
+    setUsernameOrEmail('admin@robinos.xyz');
     setPassword('robinos2026!');
   };
 
@@ -71,13 +71,15 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBackToPubli
           <div>
             <label className="block text-xs font-bold text-[#cbd5e1] mb-1.5 flex items-center gap-1.5 font-arcade">
               <Mail className="w-3.5 h-3.5 text-[#facc15]" />
-              <span>ADMINISTRATOR EMAIL</span>
+              <span>ADMIN USERNAME OR EMAIL</span>
             </label>
             <input
-              type="email"
+              type="text"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={usernameOrEmail}
+              onChange={(e) => setUsernameOrEmail(e.target.value)}
+              placeholder="admin, username, or email"
+              autoComplete="username"
               className="w-full px-4 py-3 text-xs sm:text-sm bg-[#1e2430] border border-[#2d3748] rounded-xl focus:border-[#facc15] text-[#f0fdf4] font-code focus:outline-none focus:ring-1 focus:ring-[#facc15]/30 transition-all"
             />
           </div>

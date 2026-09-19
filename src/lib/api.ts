@@ -30,22 +30,97 @@ function getAuthHeaders(): HeadersInit {
   };
 }
 
+const DEFAULT_FALLBACK_TASKS: QuestTask[] = [
+  {
+    id: 'task-1',
+    title: 'FOLLOW @RobinosNFT AND @RobinhoodApp',
+    description: 'Follow our official handles on X to stay updated on drops and announcements.',
+    type: 'Follow',
+    task_url: 'https://x.com/RobinosNFT',
+    proof_required: false,
+    required: true,
+    active: true,
+    display_order: 1,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'task-2',
+    title: 'LIKE, REPOST & COMMENT ON PINNED POST',
+    description: 'Engage with our official pinned launch announcement on X.',
+    type: 'Comment',
+    task_url: 'https://x.com/RobinosNFT',
+    proof_required: true,
+    required: true,
+    active: true,
+    display_order: 2,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
+
 export const api = {
   // Public
   async getPublicConfig(): Promise<{
     collection: PlatformSettings['collection'];
     early_access: { is_open: boolean; max_applications: number; default_allocation: string };
   }> {
-    const res = await fetch('/api/public/config');
-    if (!res.ok) throw new Error('Failed to load platform configuration');
-    return res.json();
+    try {
+      const res = await fetch('/api/public/config');
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      console.warn('Network issue fetching public config:', err);
+    }
+
+    return {
+      collection: {
+        name: 'ROBINOS',
+        supply: 5555,
+        mint_price: '0.0004 ETH (~$1)',
+        chain: 'Robinhood',
+        launch_date: 'September 24',
+        x_url: 'https://x.com/RobinosNFT',
+        opensea_status: 'Coming Soon',
+        opensea_url: 'https://opensea.io/collection/robinos-nft',
+      },
+      early_access: {
+        is_open: true,
+        max_applications: 5555,
+        default_allocation: '1 NFT',
+      },
+    };
   },
 
   async getPublicTasks(): Promise<QuestTask[]> {
-    const res = await fetch('/api/public/tasks');
-    if (!res.ok) throw new Error('Failed to load active quests');
-    const data = await res.json();
-    return data.tasks || [];
+    try {
+      const res = await fetch('/api/public/tasks');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.tasks) && data.tasks.length > 0) {
+          try {
+            localStorage.setItem('robinos_cached_tasks', JSON.stringify(data.tasks));
+          } catch {}
+          return data.tasks;
+        }
+      }
+    } catch (err) {
+      console.warn('Network issue fetching tasks from server:', err);
+    }
+
+    // Try cached tasks from previous fetch
+    try {
+      const cached = localStorage.getItem('robinos_cached_tasks');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {}
+
+    return DEFAULT_FALLBACK_TASKS;
   },
 
   async submitApplication(payload: SubmitApplicationPayload): Promise<{

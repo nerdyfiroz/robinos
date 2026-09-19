@@ -1,6 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { db } from './server/db.js';
 
 interface AuthenticatedRequest extends Request {
@@ -11,27 +10,36 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+export const app = express();
+app.use(express.json());
 
-  app.use(express.json());
+// Normalize URLs so routes match whether or not /api was stripped by serverless rewrites
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  if (!req.url.startsWith('/api') && (
+    req.url.startsWith('/public') ||
+    req.url.startsWith('/admin') ||
+    req.url.startsWith('/health')
+  )) {
+    req.url = '/api' + req.url;
+  }
+  next();
+});
 
-  // Simple IP rate limiter for submissions & auth
-  const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-  const checkRateLimit = (ip: string, limit: number = 20, windowMs: number = 60000): boolean => {
-    const now = Date.now();
-    const entry = rateLimitMap.get(ip);
-    if (!entry || now > entry.resetAt) {
-      rateLimitMap.set(ip, { count: 1, resetAt: now + windowMs });
-      return true;
-    }
-    if (entry.count >= limit) {
-      return false;
-    }
-    entry.count += 1;
+// Simple IP rate limiter for submissions & auth
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const checkRateLimit = (ip: string, limit: number = 20, windowMs: number = 60000): boolean => {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + windowMs });
     return true;
-  };
+  }
+  if (entry.count >= limit) {
+    return false;
+  }
+  entry.count += 1;
+  return true;
+};
 
   // Admin Auth Middleware
   const requireAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -220,12 +228,13 @@ async function startServer() {
 
   // Admin login
   app.post('/api/admin/login', (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+    const { email, username, password } = req.body;
+    const identifier = (email || username || '').trim();
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'Email/Username and password are required' });
     }
 
-    const authResult = db.authenticateAdmin(email, password);
+    const authResult = db.authenticateAdmin(identifier, password);
     if (!authResult) {
       return res.status(401).json({ error: 'Invalid admin credentials' });
     }
@@ -567,23 +576,30 @@ async function startServer() {
   // VITE MIDDLEWARE & SPA FALLBACK
   // ==========================================
 
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (_req: Request, res: Response) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+  async function startServer() {
+    const PORT = 3000;
+    if (process.env.NODE_ENV !== 'production') {
+      const { createServer: createViteServer } = await import('vite');
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    } else {
+      const distPath = path.join(process.cwd(), 'dist');
+      app.use(express.static(distPath));
+      app.get('*', (_req: Request, res: Response) => {
+        res.sendFile(path.join(distPath, 'index.html'));
+      });
+    }
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`ROBINOS Platform Server running on port ${PORT}`);
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`ROBINOS Platform Server running on port ${PORT}`);
-  });
-}
+  if (!process.env.VERCEL) {
+    startServer();
+  }
 
-startServer();
+  export default app;

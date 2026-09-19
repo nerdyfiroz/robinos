@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import { postgresService } from './postgres.js';
 import type {
   QuestTask,
   Applicant,
@@ -22,8 +23,12 @@ interface DatabaseSchema {
   duplicate_attempts: number;
 }
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const IS_VERCEL = Boolean(process.env.VERCEL);
+const DATA_DIR = IS_VERCEL
+  ? path.join('/tmp', 'robinos_data')
+  : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'robinos_db.json');
+const BUNDLED_DB_FILE = path.join(process.cwd(), 'data', 'robinos_db.json');
 
 // Default initial settings
 const DEFAULT_SETTINGS: PlatformSettings = {
@@ -217,11 +222,46 @@ class Database {
   constructor() {
     this.ensureDataDir();
     this.data = this.loadDatabase();
+    this.initPostgres();
+  }
+
+  private async initPostgres() {
+    try {
+      const isConnected = await postgresService.initDatabase({
+        tasks: this.data.tasks,
+        settings: this.data.settings,
+        applicants: this.data.applicants,
+        applicant_tasks: this.data.applicant_tasks,
+        admins: this.data.admins,
+        audit_logs: this.data.audit_logs,
+      });
+
+      if (isConnected) {
+        const pgData = await postgresService.loadAllData();
+        if (pgData) {
+          if (pgData.settings) this.data.settings = pgData.settings;
+          if (pgData.tasks && pgData.tasks.length > 0) this.data.tasks = pgData.tasks;
+          if (pgData.applicants && pgData.applicants.length > 0) this.data.applicants = pgData.applicants;
+          if (pgData.applicant_tasks && pgData.applicant_tasks.length > 0) this.data.applicant_tasks = pgData.applicant_tasks;
+          if (pgData.admins && pgData.admins.length > 0) this.data.admins = pgData.admins;
+          if (pgData.audit_logs && pgData.audit_logs.length > 0) this.data.audit_logs = pgData.audit_logs;
+          if (pgData.duplicate_attempts !== undefined) this.data.duplicate_attempts = pgData.duplicate_attempts;
+          console.log('⚡ Neon PostgreSQL data successfully loaded into memory.');
+          this.save();
+        }
+      }
+    } catch (err) {
+      console.error('Neon PostgreSQL background initialization error:', err);
+    }
   }
 
   private ensureDataDir() {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+    } catch (err) {
+      console.warn('Notice: Local directory creation skipped in serverless environment:', err);
     }
   }
 
@@ -231,7 +271,16 @@ class Database {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
         return JSON.parse(raw);
       } catch (err) {
-        console.error('Failed to parse database file, re-initializing...', err);
+        console.error('Failed to parse database file, checking bundled fallback...', err);
+      }
+    }
+
+    if (IS_VERCEL && fs.existsSync(BUNDLED_DB_FILE)) {
+      try {
+        const raw = fs.readFileSync(BUNDLED_DB_FILE, 'utf-8');
+        return JSON.parse(raw);
+      } catch (err) {
+        console.error('Failed to parse bundled database file...', err);
       }
     }
 
@@ -261,10 +310,12 @@ class Database {
 
   private save(dataToSave?: DatabaseSchema) {
     try {
+      this.ensureDataDir();
       const payload = dataToSave || this.data;
       fs.writeFileSync(DB_FILE, JSON.stringify(payload, null, 2), 'utf-8');
     } catch (err) {
-      console.error('Error saving database to file:', err);
+      // Safe non-fatal notice in serverless environment (Neon Postgres handles persistent cloud storage)
+      console.warn('Notice: Local disk persistence skipped:', err);
     }
   }
 
@@ -294,6 +345,9 @@ class Database {
     });
 
     this.save();
+    if (postgresService.isAvailable()) {
+      postgresService.saveSettings(this.data.settings).catch(console.error);
+    }
     return this.data.settings;
   }
 
@@ -330,6 +384,9 @@ class Database {
     });
 
     this.save();
+    if (postgresService.isAvailable()) {
+      postgresService.saveTask(newTask).catch(console.error);
+    }
     return newTask;
   }
 
@@ -361,6 +418,9 @@ class Database {
     });
 
     this.save();
+    if (postgresService.isAvailable()) {
+      postgresService.saveTask(updated).catch(console.error);
+    }
     return updated;
   }
 
@@ -380,6 +440,9 @@ class Database {
     });
 
     this.save();
+    if (postgresService.isAvailable()) {
+      postgresService.deleteTask(id).catch(console.error);
+    }
     return true;
   }
 
@@ -409,6 +472,9 @@ class Database {
     });
 
     this.save();
+    if (postgresService.isAvailable()) {
+      postgresService.saveTask(duplicated).catch(console.error);
+    }
     return duplicated;
   }
 
@@ -418,6 +484,9 @@ class Database {
       if (task) {
         task.display_order = index + 1;
         task.updated_at = new Date().toISOString();
+        if (postgresService.isAvailable()) {
+          postgresService.saveTask(task).catch(console.error);
+        }
       }
     });
 
@@ -598,6 +667,14 @@ class Database {
     });
 
     this.save();
+    if (postgresService.isAvailable()) {
+      const savedApplicant = this.data.applicants.find((a) => a.id === newApplicantId);
+      const savedTasks = this.data.applicant_tasks.filter((t) => t.applicant_id === newApplicantId);
+      if (savedApplicant) {
+        postgresService.saveApplicant(savedApplicant, savedTasks).catch(console.error);
+      }
+    }
+
     return {
       applicant: this.getApplicantById(newApplicantId)!,
       isDuplicate: false,
@@ -652,6 +729,13 @@ class Database {
     });
 
     this.save();
+    if (postgresService.isAvailable()) {
+      const updatedApplicant = this.data.applicants.find((a) => a.id === app.id);
+      const appTasks = this.data.applicant_tasks.filter((at) => at.applicant_id === app.id);
+      if (updatedApplicant) {
+        postgresService.saveApplicant(updatedApplicant, appTasks).catch(console.error);
+      }
+    }
     return this.getApplicantById(app.id);
   }
 
@@ -681,6 +765,13 @@ class Database {
     });
 
     this.save();
+    if (postgresService.isAvailable()) {
+      const app = this.data.applicants.find((a) => a.id === applicantId);
+      const appTasks = this.data.applicant_tasks.filter((at) => at.applicant_id === applicantId);
+      if (app) {
+        postgresService.saveApplicant(app, appTasks).catch(console.error);
+      }
+    }
     return rec;
   }
 
@@ -812,6 +903,9 @@ class Database {
     if (this.data.audit_logs.length > 500) {
       this.data.audit_logs.pop();
     }
+    if (postgresService.isAvailable()) {
+      postgresService.saveAuditLog(newEntry).catch(console.error);
+    }
     return newEntry;
   }
 
@@ -820,11 +914,74 @@ class Database {
   }
 
   // --- AUTH / ADMINS ---
-  public authenticateAdmin(email: string, pass: string): { token: string; admin: AdminUser } | null {
-    const hash = hashPassword(pass);
-    const admin = this.data.admins.find(
-      (a) => a.email.toLowerCase() === email.toLowerCase().trim() && a.password_hash === hash
-    );
+  public authenticateAdmin(emailOrUsername: string, pass: string): { token: string; admin: AdminUser } | null {
+    const cleanInput = emailOrUsername.toLowerCase().trim();
+    const cleanPass = pass.trim();
+
+    // 1. Check dynamic credentials provided via Vercel / environment variables
+    const envUser = (process.env.ADMIN_USERNAME || process.env.ADMIN_USER || process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+    const envPass = (process.env.ADMIN_PASSWORD || process.env.ADMIN_PASS || '').trim();
+
+    if (envUser && envPass) {
+      const matchesEnv = (
+        cleanInput === envUser ||
+        cleanInput === envUser.replace('@', '') ||
+        (envUser.includes('@') && cleanInput === envUser.split('@')[0]) ||
+        (!cleanInput.includes('@') && `${cleanInput}@robinos.xyz` === envUser)
+      );
+
+      if (matchesEnv && cleanPass === envPass) {
+        let admin = this.data.admins.find(
+          (a) => a.email.toLowerCase() === envUser || a.email.toLowerCase().split('@')[0] === envUser
+        );
+
+        if (!admin) {
+          admin = {
+            id: `admin-env-${envUser.replace(/[^a-zA-Z0-9]/g, '_')}`,
+            email: envUser.includes('@') ? envUser : `${envUser}@robinos.xyz`,
+            role: 'superadmin',
+            created_at: new Date().toISOString(),
+            password_hash: hashPassword(cleanPass),
+            session_tokens: [],
+          };
+          this.data.admins.push(admin);
+        }
+
+        const token = `token-${crypto.randomBytes(24).toString('hex')}`;
+        admin.session_tokens.push(token);
+
+        this.addAuditLog({
+          admin_id: admin.id,
+          admin_email: admin.email,
+          action: `Admin logged in successfully via Vercel environment credentials (${envUser})`,
+          target_type: 'auth',
+          target_id: admin.id,
+        });
+
+        this.save();
+        if (postgresService.isAvailable()) {
+          postgresService.saveAdminSession(admin.id, admin.session_tokens).catch(console.error);
+        }
+
+        return {
+          token,
+          admin: {
+            id: admin.id,
+            email: admin.email,
+            role: admin.role,
+            created_at: admin.created_at,
+          },
+        };
+      }
+    }
+
+    // 2. Check stored database admins
+    const hash = hashPassword(cleanPass);
+    const admin = this.data.admins.find((a) => {
+      const emailLower = a.email.toLowerCase().trim();
+      const usernameLower = emailLower.split('@')[0];
+      return (emailLower === cleanInput || usernameLower === cleanInput) && a.password_hash === hash;
+    });
 
     if (!admin) return null;
 
@@ -840,6 +997,10 @@ class Database {
     });
 
     this.save();
+    if (postgresService.isAvailable()) {
+      postgresService.saveAdminSession(admin.id, admin.session_tokens).catch(console.error);
+    }
+
     return {
       token,
       admin: {
@@ -868,6 +1029,11 @@ class Database {
       a.session_tokens = a.session_tokens.filter((t) => t !== token);
     });
     this.save();
+    if (postgresService.isAvailable()) {
+      this.data.admins.forEach((a) => {
+        postgresService.saveAdminSession(a.id, a.session_tokens).catch(console.error);
+      });
+    }
   }
 }
 

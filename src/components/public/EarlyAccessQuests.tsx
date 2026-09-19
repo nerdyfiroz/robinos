@@ -5,9 +5,6 @@ import {
   Send,
   RefreshCw,
   CheckCircle2,
-  Heart,
-  Repeat,
-  MessageCircle,
 } from 'lucide-react';
 import type { QuestTask, SubmitApplicationPayload } from '../../types.js';
 import { api } from '../../lib/api.js';
@@ -123,11 +120,29 @@ export const EarlyAccessQuests: React.FC<EarlyAccessQuestsProps> = ({ isOpen, on
   };
 
   // Parse links inside task title so user can click on the username to follow the profiles
+  // or click the title itself to open the target quest link on X
   const renderFormattedTaskTitle = (title: string, taskUrl?: string) => {
     // Regex to match words starting with @, #, or specific handles
     const parts = title.split(/(@[a-zA-Z0-9_]+|#[a-zA-Z0-9_]+)/g);
+    const hasHandles = parts.some((p) => p.startsWith('@'));
+
+    // If there are no @ handles and taskUrl exists, make the entire title the link directly in yellow
+    if (!hasHandles && taskUrl) {
+      return (
+        <a
+          href={taskUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Click to view and complete quest on X"
+          className="font-arcade text-[13px] sm:text-[15px] md:text-[16px] text-[#facc15] hover:text-[#fde047] tracking-wider leading-relaxed transition-colors cursor-pointer inline-block hover:brightness-110"
+        >
+          {title}
+        </a>
+      );
+    }
+
     return (
-      <span className="font-arcade text-[13px] sm:text-[15px] md:text-[16px] text-[#f0fdf4] tracking-wider leading-relaxed">
+      <span className={`font-arcade text-[13px] sm:text-[15px] md:text-[16px] tracking-wider leading-relaxed ${taskUrl ? 'text-[#facc15]' : 'text-[#f0fdf4]'}`}>
         {parts.map((part, i) => {
           if (part.startsWith('@')) {
             const handle = part.substring(1);
@@ -154,6 +169,19 @@ export const EarlyAccessQuests: React.FC<EarlyAccessQuestsProps> = ({ isOpen, on
               <span key={i} className="text-[#facc15] underline underline-offset-4 decoration-[#facc15] inline-block mx-0.5">
                 {part}
               </span>
+            );
+          }
+          if (taskUrl && part.trim().length > 0) {
+            return (
+              <a
+                key={i}
+                href={taskUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#facc15] hover:text-[#fde047] transition-colors cursor-pointer"
+              >
+                {part}
+              </a>
             );
           }
           return <span key={i}>{part}</span>;
@@ -318,13 +346,29 @@ export const EarlyAccessQuests: React.FC<EarlyAccessQuestsProps> = ({ isOpen, on
                 {/* Header row: Icon, Title, and REQUIRED badge */}
                 <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
                   {/* Square dark icon container with rounded corners */}
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#232a37] border border-[#303a4c] flex items-center justify-center shrink-0 text-[#f0fdf4]">
-                    {isFollow || task.type === 'Repost' || task.type === 'Comment' || task.type === 'Quote Post' ? (
-                      <XIcon className="w-5 h-5 text-[#f0fdf4]" />
-                    ) : (
-                      <span className="font-arcade text-xs text-[#facc15]">#{task.display_order}</span>
-                    )}
-                  </div>
+                  {task.task_url ? (
+                    <a
+                      href={task.task_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Open quest on X"
+                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#232a37] hover:bg-[#2c3545] border border-[#303a4c] hover:border-[#facc15]/50 flex items-center justify-center shrink-0 text-[#f0fdf4] hover:text-[#facc15] transition-all cursor-pointer"
+                    >
+                      {isFollow || task.type === 'Repost' || task.type === 'Comment' || task.type === 'Quote Post' ? (
+                        <XIcon className="w-5 h-5" />
+                      ) : (
+                        <span className="font-arcade text-xs text-[#facc15]">#{task.display_order}</span>
+                      )}
+                    </a>
+                  ) : (
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#232a37] border border-[#303a4c] flex items-center justify-center shrink-0 text-[#f0fdf4]">
+                      {isFollow || task.type === 'Repost' || task.type === 'Comment' || task.type === 'Quote Post' ? (
+                        <XIcon className="w-5 h-5 text-[#f0fdf4]" />
+                      ) : (
+                        <span className="font-arcade text-xs text-[#facc15]">#{task.display_order}</span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Title & Badge */}
                   <div className="flex-1 min-w-0 pt-0.5">
@@ -340,33 +384,6 @@ export const EarlyAccessQuests: React.FC<EarlyAccessQuestsProps> = ({ isOpen, on
                         </span>
                       )}
                     </div>
-
-                    {/* Engagement Action button for Like, Retweet & Comment tasks */}
-                    {!isFollow && task.task_url && (
-                      <div className="mt-2.5">
-                        <a
-                          href={task.task_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#202734] hover:bg-[#283243] border border-[#303c4f] hover:border-[#facc15]/70 text-[#facc15] font-arcade text-[11px] sm:text-xs rounded-lg transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <Heart className="w-3.5 h-3.5 fill-[#facc15]/20 text-[#facc15]" />
-                            <Repeat className="w-3.5 h-3.5 text-[#facc15]" />
-                            <MessageCircle className="w-3.5 h-3.5 text-[#facc15]" />
-                          </span>
-                          <span className="font-bold tracking-wider uppercase">
-                            {task.title.toUpperCase().includes('LIKE') ||
-                            task.title.toUpperCase().includes('RETWEET') ||
-                            task.title.toUpperCase().includes('REPOST') ||
-                            task.title.toUpperCase().includes('COMMENT')
-                              ? 'LIKE, RETWEET & COMMENT'
-                              : 'COMPLETE QUEST ON X'}
-                          </span>
-                          <ExternalLink className="w-3 h-3 text-[#facc15] opacity-80" />
-                        </a>
-                      </div>
-                    )}
                   </div>
                 </div>
 
