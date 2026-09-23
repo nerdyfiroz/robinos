@@ -168,7 +168,7 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onWalletCheck, isOpen, s
           <div className="flex flex-col items-center justify-center my-3 sm:my-4">
             <div className="text-[10px] sm:text-xs text-[#94a3b8] font-arcade tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${isMintLive ? 'bg-green-400 animate-ping' : 'bg-[#facc15] animate-pulse'}`} />
-              <span>{isMintLive ? 'MINT IS LIVE' : 'MINT STARTS IN (24TH SEPT · 6:30 PM UTC+6)'}</span>
+              <span>{isMintLive ? 'MINT IS LIVE' : 'MINT STARTS IN (24TH SEPT · 12:30 UTC)'}</span>
             </div>
             <div className="inline-flex items-center justify-center gap-1.5 sm:gap-4 md:gap-6 px-3 sm:px-6 py-2.5 sm:py-3.5 bg-[#181d26] border border-[#262f3d] rounded-2xl max-w-full shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
               <div className="text-center min-w-[42px] sm:min-w-[55px]">
