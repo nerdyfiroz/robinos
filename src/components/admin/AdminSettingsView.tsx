@@ -250,7 +250,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ onSettings
               </label>
               <input
                 type="url"
-                placeholder="https://opensea.io/collection/robinos-nft"
+                placeholder="https://opensea.io/collection/robinosnft/overview"
                 value={settings.collection.opensea_url}
                 onChange={(e) =>
                   setSettings({

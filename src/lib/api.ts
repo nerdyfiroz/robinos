@@ -86,8 +86,8 @@ export const api = {
         chain: 'Robinhood',
         launch_date: '24th Sept',
         x_url: 'https://x.com/RobinosNFT',
-        opensea_status: 'Coming Soon',
-        opensea_url: 'https://opensea.io/collection/robinos-nft',
+        opensea_status: 'Live',
+        opensea_url: 'https://opensea.io/collection/robinosnft/overview',
       },
       early_access: {
         is_open: true,

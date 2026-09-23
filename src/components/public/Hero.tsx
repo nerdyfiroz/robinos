@@ -41,20 +41,13 @@ const OpenSeaIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }
 );
 
 export const Hero: React.FC<HeroProps> = ({ onCtaClick, onWalletCheck, isOpen, settings }) => {
-  // Simple countdown to September 24
+  // Mint target: September 24, 2026 at 6:30 PM UTC+6 (12:30:00 UTC)
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [showOpenseaComingSoon, setShowOpenseaComingSoon] = useState(false);
-  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const calculateTime = () => {
-      const now = new Date();
-      const currentYear = now.getUTCFullYear();
-      // Target: September 24 at 14:00 UTC
-      let target = new Date(Date.UTC(currentYear, 8, 24, 14, 0, 0)).getTime();
-      if (Date.now() > target) {
-        target = new Date(Date.UTC(currentYear + 1, 8, 24, 14, 0, 0)).getTime();
-      }
+      // Target: September 24, 2026 at 18:30 UTC+6 (12:30:00 UTC)
+      const target = Date.UTC(2026, 8, 24, 12, 30, 0);
       const diff = Math.max(0, target - Date.now());
 
       setTimeLeft({
@@ -77,8 +70,8 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onWalletCheck, isOpen, s
     chain: 'Robinhood',
     launch_date: '24th Sept',
     x_url: 'https://x.com/RobinosNFT',
-    opensea_status: 'Coming Soon',
-    opensea_url: 'https://opensea.io/collection/robinos-nft',
+    opensea_status: 'Live',
+    opensea_url: 'https://opensea.io/collection/robinosnft/overview',
   };
 
   const rawLaunch = collection.launch_date?.trim();
@@ -87,34 +80,17 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onWalletCheck, isOpen, s
       ? rawLaunch
       : '24th Sept';
 
-  const isOpenseaLive =
-    collection.opensea_status === 'Live' && Boolean(collection.opensea_url);
+  const openseaUrl =
+    collection.opensea_url &&
+    collection.opensea_url !== 'https://opensea.io/collection/robinos-nft'
+      ? collection.opensea_url
+      : 'https://opensea.io/collection/robinosnft/overview';
 
-  const handleOpenseaClick = (e: React.MouseEvent) => {
-    if (isOpenseaLive && collection.opensea_url) {
-      window.open(collection.opensea_url, '_blank', 'noopener,noreferrer');
-      return;
-    }
-    e.preventDefault();
-    if (toastTimerRef.current) {
-      clearTimeout(toastTimerRef.current);
-    }
-    setShowOpenseaComingSoon(false);
-    requestAnimationFrame(() => {
-      setShowOpenseaComingSoon(true);
-      toastTimerRef.current = setTimeout(() => {
-        setShowOpenseaComingSoon(false);
-      }, 2600);
-    });
-  };
-
-  useEffect(() => {
-    return () => {
-      if (toastTimerRef.current) {
-        clearTimeout(toastTimerRef.current);
-      }
-    };
-  }, []);
+  const isMintLive =
+    timeLeft.days === 0 &&
+    timeLeft.hours === 0 &&
+    timeLeft.minutes === 0 &&
+    timeLeft.seconds === 0;
 
   return (
     <section className="relative overflow-hidden py-10 sm:py-16 lg:py-20 border-b border-[#262f3d] bg-grid-pattern w-full">
@@ -189,25 +165,31 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onWalletCheck, isOpen, s
           </div>
 
           {/* Countdown Clock (Pixelated) */}
-          <div className="inline-flex items-center justify-center gap-1.5 sm:gap-4 md:gap-6 px-3 sm:px-6 py-2.5 sm:py-3.5 bg-[#181d26] border border-[#262f3d] rounded-2xl my-3 sm:my-4 max-w-full shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
-            <div className="text-center min-w-[42px] sm:min-w-[55px]">
-              <div className="font-arcade text-sm sm:text-xl md:text-2xl text-[#facc15]">{String(timeLeft.days).padStart(2, '0')}</div>
-              <div className="text-[8px] sm:text-[9px] text-[#94a3b8] mt-0.5 font-arcade">DAYS</div>
+          <div className="flex flex-col items-center justify-center my-3 sm:my-4">
+            <div className="text-[10px] sm:text-xs text-[#94a3b8] font-arcade tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${isMintLive ? 'bg-green-400 animate-ping' : 'bg-[#facc15] animate-pulse'}`} />
+              <span>{isMintLive ? 'MINT IS LIVE' : 'MINT STARTS IN (24TH SEPT · 6:30 PM UTC+6)'}</span>
             </div>
-            <span className="text-[#facc15]/60 font-arcade text-xs sm:text-base">:</span>
-            <div className="text-center min-w-[42px] sm:min-w-[55px]">
-              <div className="font-arcade text-sm sm:text-xl md:text-2xl text-[#facc15]">{String(timeLeft.hours).padStart(2, '0')}</div>
-              <div className="text-[8px] sm:text-[9px] text-[#94a3b8] mt-0.5 font-arcade">HOURS</div>
-            </div>
-            <span className="text-[#facc15]/60 font-arcade text-xs sm:text-base">:</span>
-            <div className="text-center min-w-[42px] sm:min-w-[55px]">
-              <div className="font-arcade text-sm sm:text-xl md:text-2xl text-[#facc15]">{String(timeLeft.minutes).padStart(2, '0')}</div>
-              <div className="text-[8px] sm:text-[9px] text-[#94a3b8] mt-0.5 font-arcade">MINUTES</div>
-            </div>
-            <span className="text-[#facc15]/60 font-arcade text-xs sm:text-base">:</span>
-            <div className="text-center min-w-[42px] sm:min-w-[55px]">
-              <div className="font-arcade text-sm sm:text-xl md:text-2xl text-[#facc15]">{String(timeLeft.seconds).padStart(2, '0')}</div>
-              <div className="text-[8px] sm:text-[9px] text-[#94a3b8] mt-0.5 font-arcade">SECONDS</div>
+            <div className="inline-flex items-center justify-center gap-1.5 sm:gap-4 md:gap-6 px-3 sm:px-6 py-2.5 sm:py-3.5 bg-[#181d26] border border-[#262f3d] rounded-2xl max-w-full shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
+              <div className="text-center min-w-[42px] sm:min-w-[55px]">
+                <div className="font-arcade text-sm sm:text-xl md:text-2xl text-[#facc15]">{String(timeLeft.days).padStart(2, '0')}</div>
+                <div className="text-[8px] sm:text-[9px] text-[#94a3b8] mt-0.5 font-arcade">DAYS</div>
+              </div>
+              <span className="text-[#facc15]/60 font-arcade text-xs sm:text-base">:</span>
+              <div className="text-center min-w-[42px] sm:min-w-[55px]">
+                <div className="font-arcade text-sm sm:text-xl md:text-2xl text-[#facc15]">{String(timeLeft.hours).padStart(2, '0')}</div>
+                <div className="text-[8px] sm:text-[9px] text-[#94a3b8] mt-0.5 font-arcade">HOURS</div>
+              </div>
+              <span className="text-[#facc15]/60 font-arcade text-xs sm:text-base">:</span>
+              <div className="text-center min-w-[42px] sm:min-w-[55px]">
+                <div className="font-arcade text-sm sm:text-xl md:text-2xl text-[#facc15]">{String(timeLeft.minutes).padStart(2, '0')}</div>
+                <div className="text-[8px] sm:text-[9px] text-[#94a3b8] mt-0.5 font-arcade">MINUTES</div>
+              </div>
+              <span className="text-[#facc15]/60 font-arcade text-xs sm:text-base">:</span>
+              <div className="text-center min-w-[42px] sm:min-w-[55px]">
+                <div className="font-arcade text-sm sm:text-xl md:text-2xl text-[#facc15]">{String(timeLeft.seconds).padStart(2, '0')}</div>
+                <div className="text-[8px] sm:text-[9px] text-[#94a3b8] mt-0.5 font-arcade">SECONDS</div>
+              </div>
             </div>
           </div>
 
@@ -252,30 +234,18 @@ export const Hero: React.FC<HeroProps> = ({ onCtaClick, onWalletCheck, isOpen, s
               <XIcon className="w-5 h-5 text-[#f0fdf4] group-hover:text-[#facc15] transition-colors" />
             </a>
 
-            {/* OpenSea Button - Logo only, animated Coming Soon tooltip on click */}
-            <div className="relative inline-flex items-center justify-center">
-              {showOpenseaComingSoon && (
-                <div
-                  id="opensea-coming-soon-tooltip"
-                  className="absolute -top-12 left-1/2 -translate-x-1/2 z-30 px-3.5 py-1.5 bg-[#181d26] border border-[#2081E2] text-[#f0fdf4] font-arcade text-[10px] tracking-wider rounded-lg shadow-[0_4px_20px_rgba(32,129,226,0.4)] whitespace-nowrap flex items-center gap-2 animate-pop-tooltip select-none pointer-events-none"
-                >
-                  <span className="w-2 h-2 rounded-full bg-[#2081E2] animate-pulse" />
-                  <span>COMING SOON</span>
-                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#181d26] border-r border-b border-[#2081E2] rotate-45" />
-                </div>
-              )}
-
-              <button
-                type="button"
-                id="hero-opensea-btn"
-                onClick={handleOpenseaClick}
-                aria-label={isOpenseaLive ? 'OpenSea Collection' : 'OpenSea: Coming Soon'}
-                className="p-3.5 sm:p-4 text-[#f0fdf4] bg-[#181d26] hover:bg-[#202734] border border-[#262f3d] hover:border-[#2081E2]/60 rounded-xl flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.2)] transition-all group hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
-                title={isOpenseaLive ? 'OpenSea Collection' : 'OpenSea: Coming Soon'}
-              >
-                <OpenSeaIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              </button>
-            </div>
+            {/* OpenSea Link - Direct link to official OpenSea collection */}
+            <a
+              id="hero-opensea-btn"
+              href={openseaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View Robinos on OpenSea"
+              className="p-3.5 sm:p-4 text-[#f0fdf4] bg-[#181d26] hover:bg-[#202734] border border-[#262f3d] hover:border-[#2081E2]/60 rounded-xl flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.2)] transition-all group hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
+              title="Robinos on OpenSea"
+            >
+              <OpenSeaIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            </a>
           </div>
         </div>
       </div>

@@ -69,8 +69,8 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
     chain: 'Robinhood',
     launch_date: '24th Sept',
     x_url: 'https://x.com/RobinosNFT',
-    opensea_status: 'Coming Soon',
-    opensea_url: 'https://opensea.io/collection/robinos-nft',
+    opensea_status: 'Live',
+    opensea_url: 'https://opensea.io/collection/robinosnft/overview',
   },
   early_access: {
     is_open: true,
@@ -243,6 +243,14 @@ export class MongoDatabaseService {
             ...(data.collection || {}),
             launch_date: '24th Sept',
           };
+        }
+        if (data.collection) {
+          if (!data.collection.opensea_url || data.collection.opensea_url === 'https://opensea.io/collection/robinos-nft') {
+            data.collection.opensea_url = 'https://opensea.io/collection/robinosnft/overview';
+          }
+          if (!data.collection.opensea_status || data.collection.opensea_status === 'Coming Soon') {
+            data.collection.opensea_status = 'Live';
+          }
         }
         return data;
       }
